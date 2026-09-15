@@ -692,6 +692,11 @@ test("브라우저 진입 모듈은 시작 click부터 실제 Canvas 10칸 렌�
   }
   assert.equal(controller.state.phase, "path-review");
   assert.equal(drawnTexts.includes("-49"), true);
+  controller.state.phase = "walking";
+  controller.state.lastDamage = 49;
+  controller.state.damageEffectRemaining = 0.45;
+  controller.render();
+  assert.equal(drawnTexts.includes("-49 체력"), true);
   controller.state.phase = "camera-transition";
   controller.state.baseHeight = 50;
   controller.state.cameraTransitionProgress = 0.5;

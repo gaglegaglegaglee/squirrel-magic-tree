@@ -133,3 +133,19 @@ test("카메라는 전환 내내 한 방향인 오른쪽 위로 이동한다", (
   assert.deepEqual(cameraOffsetForProgress(1), { x: -320, y: 190 });
   assert.deepEqual(cameraOffsetForProgress(2), { x: -320, y: 190 });
 });
+
+test("카메라 전환 끝은 현재 주인공과 새 왼쪽 시작점의 차이를 정확히 메운다", () => {
+  const character = { x: 1420, y: 600 };
+  const start = { x: 132, y: 777 };
+  const targetX = start.x - character.x;
+  const targetY = start.y - character.y;
+
+  assert.deepEqual(cameraOffsetForProgress(0.5, targetX, targetY), {
+    x: -644,
+    y: 88.5,
+  });
+  assert.deepEqual(cameraOffsetForProgress(1, targetX, targetY), {
+    x: targetX,
+    y: targetY,
+  });
+});

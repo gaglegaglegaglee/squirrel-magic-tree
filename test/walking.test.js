@@ -144,11 +144,13 @@ test("50→1 피해는 착지 순간 한 번만 적용되고 HUD용 체력 상�
   assert.equal(state.characterSlot, 1);
   assert.equal(state.lastDamage, 49);
   assert.equal(state.health, 51);
+  assert.equal(state.damageEffectRemaining, 0.45);
 
   advanceWalk(state, 0);
   advanceWalk(state, WALK_STEP_SECONDS / 2);
   assert.equal(state.characterSlot, 1);
   assert.equal(state.health, 51);
+  assert.equal(state.damageEffectRemaining < 0.45, true);
 });
 
 test("누적 피해로 체력이 소진되면 0으로 고정하고 해당 바위에서 즉시 종료한다", () => {

@@ -137,6 +137,16 @@ function characterFootPosition(state) {
   };
 }
 
+function cameraOffsetToAlignCharacter(state) {
+  const start = { x: 132, y: 777 };
+  const character = characterFootPosition(state);
+  return cameraOffsetForProgress(
+    state.cameraTransitionProgress,
+    start.x - character.x,
+    start.y - character.y,
+  );
+}
+
 function drawCharacter(state) {
   const position = characterFootPosition(state);
   const x = position.x;
@@ -277,6 +287,33 @@ function drawCameraTransition(state) {
   context.fillText(`높이 ${state.baseHeight}m · 다음 층으로 상승 중`, LOGICAL_WIDTH / 2, 170);
 }
 
+function drawDamageEffect(state) {
+  if (state.damageEffectRemaining <= 0 && state.phase !== "game-over") {
+    return;
+  }
+
+  const strength = state.phase === "game-over"
+    ? 0.28
+    : Math.min(0.25, 0.1 + state.damageEffectRemaining * 0.32);
+  context.save();
+  context.fillStyle = `rgba(184, 18, 30, ${strength})`;
+  context.fillRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
+  context.strokeStyle = "rgba(255, 65, 70, 0.9)";
+  context.lineWidth = 30;
+  context.strokeRect(15, 15, LOGICAL_WIDTH - 30, LOGICAL_HEIGHT - 30);
+  if (state.lastDamage > 0) {
+    context.fillStyle = "#fff4ef";
+    context.strokeStyle = "#7b101b";
+    context.lineWidth = 10;
+    context.font = "900 58px system-ui, sans-serif";
+    context.textAlign = "center";
+    context.textBaseline = "middle";
+    context.strokeText(`-${state.lastDamage} 체력`, LOGICAL_WIDTH / 2, 245);
+    context.fillText(`-${state.lastDamage} 체력`, LOGICAL_WIDTH / 2, 245);
+  }
+  context.restore();
+}
+
 function drawRock(centerX, bottomY, height, isFixed) {
   const visualHeight = rockVisualHeight(height);
   const rockWidth = Math.min(SLOT_WIDTH - 12, 95 + height * 0.24);
@@ -345,7 +382,7 @@ function render(state) {
   drawBackground();
   context.save();
   if (state.phase === "camera-transition") {
-    const cameraOffset = cameraOffsetForProgress(state.cameraTransitionProgress);
+    const cameraOffset = cameraOffsetToAlignCharacter(state);
     context.translate(cameraOffset.x, cameraOffset.y);
   }
   drawSlots(state);
@@ -353,6 +390,7 @@ function render(state) {
   drawCharacter(state);
   drawCurrentRock(state);
   context.restore();
+  drawDamageEffect(state);
   drawCameraTransition(state);
 }
 

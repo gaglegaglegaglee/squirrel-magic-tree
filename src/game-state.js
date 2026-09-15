@@ -52,11 +52,15 @@ export function calculateAscendingRecovery(previousHeight, nextHeight, currentSt
   return { streak, recovery: 2 ** streak - 1 };
 }
 
-export function cameraOffsetForProgress(progress) {
+export function cameraOffsetForProgress(
+  progress,
+  targetX = -CAMERA_HORIZONTAL_SHIFT,
+  targetY = CAMERA_VERTICAL_SHIFT,
+) {
   const safeProgress = Number.isFinite(progress) ? Math.min(1, Math.max(0, progress)) : 0;
   return {
-    x: safeProgress === 0 ? 0 : -CAMERA_HORIZONTAL_SHIFT * safeProgress,
-    y: CAMERA_VERTICAL_SHIFT * safeProgress,
+    x: safeProgress === 0 ? 0 : targetX * safeProgress,
+    y: targetY * safeProgress,
   };
 }
 
@@ -89,6 +93,7 @@ export function createInitialState() {
     walkProgress: 0,
     walkedSlots: 0,
     lastDamage: 0,
+    damageEffectRemaining: 0,
     ascendingStreak: 0,
     lastHealing: 0,
     completedSections: 0,
@@ -119,6 +124,7 @@ export function startGame(state, random = Math.random) {
   state.walkProgress = 0;
   state.walkedSlots = 0;
   state.lastDamage = 0;
+  state.damageEffectRemaining = 0;
   state.ascendingStreak = 0;
   state.lastHealing = 0;
   state.completedSections = 0;
@@ -220,6 +226,7 @@ function landOnNextRock(state) {
   state.lastHealing = Math.min(ascent.recovery, STARTING_HEALTH - state.health);
   state.health += state.lastHealing;
   state.lastDamage = damage;
+  state.damageEffectRemaining = damage > 0 ? 0.45 : 0;
   state.characterSlot = nextSlot;
   state.currentHeight = state.baseHeight + nextHeight;
   state.walkedSlots += 1;
@@ -243,6 +250,7 @@ export function advanceWalk(state, elapsedSeconds) {
   }
 
   const safeElapsed = Number.isFinite(elapsedSeconds) ? Math.max(0, elapsedSeconds) : 0;
+  state.damageEffectRemaining = Math.max(0, state.damageEffectRemaining - safeElapsed);
   if (state.phase === "path-review") {
     state.pathReviewRemaining = Math.max(0, state.pathReviewRemaining - safeElapsed);
     if (state.pathReviewRemaining === 0) {
@@ -270,6 +278,7 @@ export function advanceCameraTransition(state, elapsedSeconds, random = Math.ran
   }
 
   const safeElapsed = Number.isFinite(elapsedSeconds) ? Math.max(0, elapsedSeconds) : 0;
+  state.damageEffectRemaining = Math.max(0, state.damageEffectRemaining - safeElapsed);
   state.cameraTransitionRemaining = Math.max(0, state.cameraTransitionRemaining - safeElapsed);
   state.cameraTransitionProgress = Math.min(
     1,
@@ -291,6 +300,7 @@ export function advanceCameraTransition(state, elapsedSeconds, random = Math.ran
   state.characterSlot = -1;
   state.walkProgress = 0;
   state.lastDamage = 0;
+  state.damageEffectRemaining = 0;
   state.ascendingStreak = 0;
   state.lastHealing = 0;
   state.cameraTransitionRemaining = 0;

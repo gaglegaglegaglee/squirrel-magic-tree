@@ -269,6 +269,21 @@ h1 {
   overflow-wrap: anywhere;
 }
 
+.hud strong.health-damaged {
+  color: #ff5a5f;
+  text-shadow: 0 0 16px #ff263dcc;
+  animation: health-damage-flash 420ms ease-out;
+}
+
+@keyframes health-damage-flash {
+  0%, 45% {
+    transform: scale(1.22);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
 .hud-title {
   color: #ffe8a2;
   font-family: Georgia, "Noto Serif KR", serif;

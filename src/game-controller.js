@@ -137,6 +137,7 @@ export function createGameController({
 
   function updateHud() {
     healthValue.textContent = String(Math.max(0, state.health));
+    healthValue.classList?.toggle("health-damaged", state.lastDamage > 0);
     heightValue.textContent = String(state.currentHeight);
   }
 
