@@ -25,4 +25,10 @@ node --check src/record-store.js
 node --check src/tutorial-store.js
 ```
 
+배포용 정적 파일은 다음 명령으로 `dist/`에 만듭니다.
+
+```bash
+npm run build
+```
+
 게임 파일은 최초 로딩 뒤 네트워크 요청 없이 동작하며 기록과 안내 완료 여부만 현재 브라우저 저장소에 보관합니다.
