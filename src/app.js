@@ -1,5 +1,5 @@
 import { createGameController } from "./game-controller.js";
-import { SLOT_COUNT, cameraOffsetForProgress } from "./game-state.js";
+import { SLOT_COUNT, bounceHeightForProgress, cameraOffsetForProgress } from "./game-state.js";
 import { createBestRecordStore } from "./record-store.js";
 import { createTutorialStore } from "./tutorial-store.js";
 
@@ -147,53 +147,35 @@ function cameraOffsetToAlignCharacter(state) {
   );
 }
 
-function drawCharacter(state) {
+function drawClimberDot(state) {
   const position = characterFootPosition(state);
   const x = position.x;
   const ground = position.y;
+  const bounce = state.phase === "walking" ? bounceHeightForProgress(state.walkProgress) : 0;
+  const radius = state.phase === "game-over" ? 18 : 22;
+  const centerY = ground - radius - bounce;
 
-  context.strokeStyle = "#3a2024";
-  context.lineWidth = 16;
-  context.lineCap = "round";
+  context.save();
+  context.fillStyle = "rgba(42, 23, 32, 0.28)";
   context.beginPath();
-  context.moveTo(x - 12, ground - 58);
-  context.lineTo(x - 18, ground);
-  context.moveTo(x + 13, ground - 58);
-  context.lineTo(x + 22, ground);
-  context.moveTo(x - 28, ground - 116);
-  context.lineTo(x - 52, ground - 70);
-  context.moveTo(x + 26, ground - 116);
-  context.lineTo(x + 50, ground - 78);
+  context.ellipse(x, ground + 3, 25 - bounce * 0.16, 7, 0, 0, Math.PI * 2);
+  context.fill();
+
+  context.shadowColor = state.phase === "game-over" ? "#ff263d" : "#fff0a3";
+  context.shadowBlur = state.phase === "game-over" ? 18 : 24;
+  context.fillStyle = state.phase === "game-over" ? "#d73832" : "#fff1a8";
+  context.strokeStyle = state.phase === "game-over" ? "#7b101b" : "#5c362d";
+  context.lineWidth = 6;
+  context.beginPath();
+  context.arc(x, centerY, radius, 0, Math.PI * 2);
+  context.fill();
   context.stroke();
 
-  context.fillStyle = "#f1bd74";
+  context.fillStyle = state.phase === "game-over" ? "#ff8b86" : "#ffffff";
   context.beginPath();
-  context.arc(x, ground - 175, 39, 0, Math.PI * 2);
+  context.arc(x - 7, centerY - 8, 6, 0, Math.PI * 2);
   context.fill();
-
-  context.fillStyle = "#efe2ba";
-  context.beginPath();
-  context.moveTo(x - 35, ground - 145);
-  context.lineTo(x + 35, ground - 145);
-  context.lineTo(x + 24, ground - 55);
-  context.lineTo(x - 25, ground - 55);
-  context.closePath();
-  context.fill();
-
-  context.fillStyle = "#1c6f73";
-  context.fillRect(x - 43, ground - 213, 86, 20);
-  context.fillRect(x - 30, ground - 228, 60, 21);
-
-  if (state.phase === "game-over") {
-    context.strokeStyle = "#d73832";
-    context.lineWidth = 10;
-    context.beginPath();
-    context.moveTo(x - 32, ground - 225);
-    context.lineTo(x + 32, ground - 165);
-    context.moveTo(x + 32, ground - 225);
-    context.lineTo(x - 32, ground - 165);
-    context.stroke();
-  }
+  context.restore();
 }
 
 function slotX(index) {
@@ -387,7 +369,7 @@ function render(state) {
   }
   drawSlots(state);
   drawDangerMarkers(state);
-  drawCharacter(state);
+  drawClimberDot(state);
   drawCurrentRock(state);
   context.restore();
   drawDamageEffect(state);

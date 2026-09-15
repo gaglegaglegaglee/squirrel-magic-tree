@@ -10,6 +10,7 @@ import {
   advanceRock,
   advanceWalk,
   autoPlaceCurrentRock,
+  bounceHeightForProgress,
   cameraOffsetForProgress,
   createInitialState,
   placeCurrentRock,
@@ -134,7 +135,7 @@ test("카메라는 전환 내내 한 방향인 오른쪽 위로 이동한다", (
   assert.deepEqual(cameraOffsetForProgress(2), { x: -320, y: 190 });
 });
 
-test("카메라 전환 끝은 현재 주인공과 새 왼쪽 시작점의 차이를 정확히 메운다", () => {
+test("카메라 전환 끝은 현재 점과 새 왼쪽 시작점의 차이를 정확히 메운다", () => {
   const character = { x: 1420, y: 600 };
   const start = { x: 132, y: 777 };
   const targetX = start.x - character.x;
@@ -148,4 +149,10 @@ test("카메라 전환 끝은 현재 주인공과 새 왼쪽 시작점의 차이
     x: targetX,
     y: targetY,
   });
+});
+
+test("점은 이동 시작과 착지에서는 바닥에 있고 중간에서 가장 높이 튄다", () => {
+  assert.equal(bounceHeightForProgress(0), 0);
+  assert.equal(bounceHeightForProgress(0.5), 42);
+  assert.equal(Math.abs(bounceHeightForProgress(1)) < 1e-12, true);
 });

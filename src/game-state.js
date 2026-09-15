@@ -64,6 +64,11 @@ export function cameraOffsetForProgress(
   };
 }
 
+export function bounceHeightForProgress(progress) {
+  const safeProgress = Number.isFinite(progress) ? Math.min(1, Math.max(0, progress)) : 0;
+  return Math.sin(safeProgress * Math.PI) * 42;
+}
+
 export function findDangerousDrops(slots) {
   const drops = [];
   for (let fromIndex = 0; fromIndex < slots.length - 1; fromIndex += 1) {

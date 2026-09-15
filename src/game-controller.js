@@ -273,7 +273,7 @@ export function createGameController({
 
   function updateWalkingMessage(previousPhase, previousCharacterSlot) {
     if (previousPhase === "path-review" && state.phase === "walking") {
-      gameStatus.textContent = "주인공이 완성된 길을 걷기 시작합니다.";
+      gameStatus.textContent = "점이 완성된 길을 따라 튀기 시작합니다.";
       return;
     }
 
