@@ -1,0 +1,127 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+
+import {
+  CAMERA_TRANSITION_SECONDS,
+  PATH_REVIEW_SECONDS,
+  SLOT_COUNT,
+  WALK_STEP_SECONDS,
+  advanceCameraTransition,
+  advanceRock,
+  advanceWalk,
+  autoPlaceCurrentRock,
+  createInitialState,
+  placeCurrentRock,
+  speedMultiplierForSections,
+  startGame,
+} from "../src/game-state.js";
+
+const fixedRandom = () => 0.4;
+
+function placeBoard(state, heights) {
+  for (let slotIndex = 0; slotIndex < SLOT_COUNT; slotIndex += 1) {
+    state.currentRock.height = heights[slotIndex];
+    state.currentRock.position = (slotIndex + 0.51) / SLOT_COUNT;
+    advanceRock(state, 0, fixedRandom);
+    assert.equal(placeCurrentRock(state, fixedRandom), true);
+  }
+}
+
+function walkWholeBoard(state) {
+  advanceWalk(state, PATH_REVIEW_SECONDS);
+  for (let index = 0; index < SLOT_COUNT; index += 1) {
+    advanceWalk(state, WALK_STEP_SECONDS);
+  }
+}
+
+test("두 구간을 반복하면 마지막 절대 높이를 새 baseHeight로 승계하고 체력·누적 칸을 보존한다", () => {
+  const state = createInitialState();
+  startGame(state, fixedRandom);
+  state.health = 95;
+
+  placeBoard(state, Array(SLOT_COUNT).fill(10));
+  walkWholeBoard(state);
+  assert.equal(state.phase, "camera-transition");
+  assert.equal(state.baseHeight, 10);
+  assert.equal(state.currentHeight, 10);
+  assert.equal(state.health, 95);
+  assert.equal(state.walkedSlots, 10);
+  assert.equal(state.completedSections, 1);
+  assert.equal(state.rockSpeedMultiplier, 1.05);
+
+  advanceCameraTransition(state, CAMERA_TRANSITION_SECONDS, fixedRandom);
+  assert.equal(state.phase, "placing");
+  assert.equal(state.slots.length, SLOT_COUNT);
+  assert.equal(state.slots.every((height) => height === null), true);
+  assert.notEqual(state.currentRock, null);
+  assert.equal(state.characterSlot, -1);
+  assert.equal(state.baseHeight, 10);
+  assert.equal(state.currentHeight, 10);
+  assert.equal(state.health, 95);
+  assert.equal(state.walkedSlots, 10);
+
+  placeBoard(state, Array(SLOT_COUNT).fill(20));
+  advanceWalk(state, PATH_REVIEW_SECONDS);
+  advanceWalk(state, WALK_STEP_SECONDS);
+  assert.equal(state.currentHeight, 30);
+  for (let index = 1; index < SLOT_COUNT; index += 1) {
+    advanceWalk(state, WALK_STEP_SECONDS);
+  }
+
+  assert.equal(state.phase, "camera-transition");
+  assert.equal(state.baseHeight, 30);
+  assert.equal(state.currentHeight, 30);
+  assert.equal(state.health, 95);
+  assert.equal(state.walkedSlots, 20);
+  assert.equal(state.completedSections, 2);
+  assert.equal(state.rockSpeedMultiplier, 1.1);
+  assert.equal(Number.isInteger(state.baseHeight), true);
+  assert.equal(Number.isInteger(state.walkedSlots), true);
+});
+
+test("카메라 전환 중 입력과 재호출은 보드나 바위를 중복 생성하지 않는다", () => {
+  const state = createInitialState();
+  startGame(state, fixedRandom);
+  placeBoard(state, Array(SLOT_COUNT).fill(12));
+  walkWholeBoard(state);
+  const completedBoard = [...state.slots];
+
+  assert.equal(placeCurrentRock(state, fixedRandom), false);
+  assert.equal(autoPlaceCurrentRock(state, fixedRandom), false);
+  assert.equal(advanceRock(state, 10, fixedRandom), false);
+  advanceCameraTransition(state, CAMERA_TRANSITION_SECONDS / 2, fixedRandom);
+  assert.equal(state.phase, "camera-transition");
+  assert.equal(state.currentRock, null);
+  assert.deepEqual(state.slots, completedBoard);
+
+  advanceCameraTransition(state, CAMERA_TRANSITION_SECONDS / 2, fixedRandom);
+  const onlyNewRock = state.currentRock;
+  assert.equal(state.phase, "placing");
+  assert.equal(state.placementCount, 0);
+  assert.equal(state.slots.filter((height) => height !== null).length, 0);
+  assert.equal(advanceCameraTransition(state, CAMERA_TRANSITION_SECONDS, fixedRandom), false);
+  assert.equal(state.currentRock, onlyNewRock);
+});
+
+test("속도 배수는 구간마다 0.05 상승해 2.00에서 멈추고 바위 이동량에만 반영된다", () => {
+  assert.equal(speedMultiplierForSections(0), 1);
+  assert.equal(speedMultiplierForSections(1), 1.05);
+  assert.equal(speedMultiplierForSections(19), 1.95);
+  assert.equal(speedMultiplierForSections(20), 2);
+  assert.equal(speedMultiplierForSections(200), 2);
+
+  const normalState = createInitialState();
+  const fastState = createInitialState();
+  startGame(normalState, fixedRandom);
+  startGame(fastState, fixedRandom);
+  fastState.rockSpeedMultiplier = 2;
+  const normalStart = normalState.currentRock.position;
+  const fastStart = fastState.currentRock.position;
+  advanceRock(normalState, 1, fixedRandom);
+  advanceRock(fastState, 1, fixedRandom);
+  const normalDistance = normalStart - normalState.currentRock.position;
+  const fastDistance = fastStart - fastState.currentRock.position;
+  assert.equal(Math.abs(fastDistance - normalDistance * 2) < 1e-12, true);
+  assert.equal(WALK_STEP_SECONDS, 0.55);
+  assert.equal(CAMERA_TRANSITION_SECONDS, 0.9);
+});
