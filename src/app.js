@@ -60,52 +60,53 @@ function prepareContext() {
 
 function drawBackground() {
   const sky = context.createLinearGradient(0, 0, 0, 650);
-  sky.addColorStop(0, "#9f4f4a");
-  sky.addColorStop(0.56, "#f2a65d");
-  sky.addColorStop(1, "#f7cd78");
+  sky.addColorStop(0, "#cdebf4");
+  sky.addColorStop(0.54, "#f3dff0");
+  sky.addColorStop(1, "#f9efc7");
   context.fillStyle = sky;
   context.fillRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
 
-  context.fillStyle = "#ffe8a2";
+  context.fillStyle = "#fff8cf";
   context.beginPath();
-  context.arc(1320, 150, 76, 0, Math.PI * 2);
+  context.arc(1330, 145, 72, 0, Math.PI * 2);
   context.fill();
 
-  drawDistantPyramid(70, 570, 310, "#9c543e", "#70382f");
-  drawDistantPyramid(980, 605, 240, "#b96743", "#81422f");
+  const foliage = [
+    [80, 510, 170, "#a8d5ba"], [255, 540, 210, "#bddfb6"],
+    [510, 500, 185, "#9fcdb1"], [1100, 525, 230, "#b6dcae"],
+    [1380, 500, 210, "#9fcfb5"],
+  ];
+  for (const [x, y, radius, color] of foliage) {
+    context.fillStyle = color;
+    context.beginPath();
+    context.arc(x, y, radius, 0, Math.PI * 2);
+    context.fill();
+  }
 
-  context.fillStyle = "#c47743";
+  context.strokeStyle = "#a97968";
+  context.lineWidth = 72;
+  context.lineCap = "round";
   context.beginPath();
-  context.moveTo(0, 590);
-  context.quadraticCurveTo(330, 535, 690, 618);
-  context.quadraticCurveTo(1120, 530, 1600, 610);
+  context.moveTo(100, 900);
+  context.bezierCurveTo(170, 700, 80, 490, 230, 320);
+  context.moveTo(1500, 900);
+  context.bezierCurveTo(1410, 700, 1510, 500, 1370, 340);
+  context.stroke();
+
+  context.fillStyle = "#cce5b2";
+  context.beginPath();
+  context.moveTo(0, 650);
+  context.quadraticCurveTo(330, 585, 690, 660);
+  context.quadraticCurveTo(1120, 590, 1600, 650);
   context.lineTo(1600, 900);
   context.lineTo(0, 900);
   context.closePath();
   context.fill();
 
-  context.fillStyle = "#9a5239";
+  context.fillStyle = "#89b68e";
   context.fillRect(0, 778, LOGICAL_WIDTH, 122);
-  context.fillStyle = "#69352f";
+  context.fillStyle = "#6e9c7a";
   context.fillRect(0, 778, LOGICAL_WIDTH, 9);
-}
-
-function drawDistantPyramid(x, baseline, size, litColor, shadeColor) {
-  context.fillStyle = litColor;
-  context.beginPath();
-  context.moveTo(x, baseline);
-  context.lineTo(x + size * 0.52, baseline - size);
-  context.lineTo(x + size, baseline);
-  context.closePath();
-  context.fill();
-
-  context.fillStyle = shadeColor;
-  context.beginPath();
-  context.moveTo(x + size * 0.52, baseline - size);
-  context.lineTo(x + size, baseline);
-  context.lineTo(x + size * 0.52, baseline);
-  context.closePath();
-  context.fill();
 }
 
 function characterFootPosition(state) {
@@ -147,34 +148,66 @@ function cameraOffsetToAlignCharacter(state) {
   );
 }
 
-function drawClimberDot(state) {
+function drawSquirrel(state) {
   const position = characterFootPosition(state);
   const x = position.x;
   const ground = position.y;
   const bounce = state.phase === "walking" ? bounceHeightForProgress(state.walkProgress) : 0;
-  const radius = state.phase === "game-over" ? 18 : 22;
-  const centerY = ground - radius - bounce;
+  const centerY = ground - 28 - bounce;
 
   context.save();
   context.fillStyle = "rgba(42, 23, 32, 0.28)";
   context.beginPath();
-  context.ellipse(x, ground + 3, 25 - bounce * 0.16, 7, 0, 0, Math.PI * 2);
+  context.ellipse(x, ground + 3, 28 - bounce * 0.16, 7, 0, 0, Math.PI * 2);
   context.fill();
 
-  context.shadowColor = state.phase === "game-over" ? "#ff263d" : "#fff0a3";
-  context.shadowBlur = state.phase === "game-over" ? 18 : 24;
-  context.fillStyle = state.phase === "game-over" ? "#d73832" : "#fff1a8";
-  context.strokeStyle = state.phase === "game-over" ? "#7b101b" : "#5c362d";
-  context.lineWidth = 6;
+  const fur = state.phase === "game-over" ? "#d65f68" : "#c98768";
+  const darkFur = state.phase === "game-over" ? "#8e3440" : "#84584d";
+  context.shadowColor = state.phase === "game-over" ? "#ff8088" : "#fff2cf";
+  context.shadowBlur = 16;
+
+  context.fillStyle = "#dca084";
+  context.strokeStyle = darkFur;
+  context.lineWidth = 7;
   context.beginPath();
-  context.arc(x, centerY, radius, 0, Math.PI * 2);
+  context.arc(x - 25, centerY - 12, 31, Math.PI * 0.45, Math.PI * 1.85);
+  context.arc(x - 38, centerY - 22, 18, Math.PI * 1.85, Math.PI * 0.45);
+  context.closePath();
   context.fill();
   context.stroke();
 
-  context.fillStyle = state.phase === "game-over" ? "#ff8b86" : "#ffffff";
+  context.fillStyle = fur;
   context.beginPath();
-  context.arc(x - 7, centerY - 8, 6, 0, Math.PI * 2);
+  context.ellipse(x, centerY, 25, 29, 0, 0, Math.PI * 2);
   context.fill();
+  context.stroke();
+
+  context.beginPath();
+  context.arc(x + 17, centerY - 25, 18, 0, Math.PI * 2);
+  context.fill();
+  context.stroke();
+
+  context.fillStyle = fur;
+  context.beginPath();
+  context.moveTo(x + 8, centerY - 39);
+  context.lineTo(x + 15, centerY - 57);
+  context.lineTo(x + 23, centerY - 39);
+  context.closePath();
+  context.fill();
+
+  context.fillStyle = "#3c3b45";
+  context.beginPath();
+  context.arc(x + 23, centerY - 29, 4, 0, Math.PI * 2);
+  context.fill();
+
+  context.strokeStyle = darkFur;
+  context.lineWidth = 5;
+  context.beginPath();
+  context.moveTo(x - 10, centerY + 21);
+  context.lineTo(x - 15, ground);
+  context.moveTo(x + 11, centerY + 22);
+  context.lineTo(x + 18, ground);
+  context.stroke();
   context.restore();
 }
 
@@ -298,29 +331,38 @@ function drawDamageEffect(state) {
 
 function drawRock(centerX, bottomY, height, isFixed) {
   const visualHeight = rockVisualHeight(height);
-  const rockWidth = Math.min(SLOT_WIDTH - 12, 95 + height * 0.24);
+  const logWidth = Math.min(SLOT_WIDTH - 16, 88 + height * 0.18);
 
   context.save();
-  context.shadowColor = isFixed ? "#2e172377" : "#4a202999";
-  context.shadowBlur = isFixed ? 8 : 20;
-  context.shadowOffsetY = isFixed ? 7 : 15;
-
-  const gradient = context.createLinearGradient(centerX - rockWidth / 2, 0, centerX + rockWidth / 2, 0);
-  gradient.addColorStop(0, "#633b34");
-  gradient.addColorStop(0.55, "#a56742");
-  gradient.addColorStop(1, "#4d2c2c");
-  context.fillStyle = gradient;
-  context.strokeStyle = isFixed ? "#3d2528" : "#ffe5a1";
-  context.lineWidth = isFixed ? 4 : 7;
+  context.shadowColor = "#6f75684d";
+  context.shadowBlur = isFixed ? 8 : 18;
+  context.shadowOffsetY = isFixed ? 6 : 10;
+  context.fillStyle = "#c98f72";
+  context.strokeStyle = isFixed ? "#7d6258" : "#fff3d7";
+  context.lineWidth = isFixed ? 5 : 7;
   context.beginPath();
-  context.moveTo(centerX - rockWidth * 0.48, bottomY);
-  context.lineTo(centerX - rockWidth * 0.44, bottomY - visualHeight * 0.64);
-  context.lineTo(centerX - rockWidth * 0.22, bottomY - visualHeight * 0.93);
-  context.lineTo(centerX + rockWidth * 0.18, bottomY - visualHeight);
-  context.lineTo(centerX + rockWidth * 0.46, bottomY - visualHeight * 0.7);
-  context.lineTo(centerX + rockWidth * 0.5, bottomY);
-  context.closePath();
+  context.roundRect(centerX - logWidth / 2, bottomY - visualHeight, logWidth, visualHeight, 18);
   context.fill();
+  context.stroke();
+
+  context.strokeStyle = "#a56f5c";
+  context.lineWidth = 5;
+  for (const offset of [-0.22, 0.18]) {
+    context.beginPath();
+    context.moveTo(centerX + logWidth * offset, bottomY - visualHeight + 18);
+    context.lineTo(centerX + logWidth * offset, bottomY - 18);
+    context.stroke();
+  }
+
+  context.fillStyle = "#e5b594";
+  context.strokeStyle = "#89685d";
+  context.lineWidth = 4;
+  context.beginPath();
+  context.ellipse(centerX, bottomY - visualHeight, logWidth / 2, 14, 0, 0, Math.PI * 2);
+  context.fill();
+  context.stroke();
+  context.beginPath();
+  context.ellipse(centerX, bottomY - visualHeight, logWidth * 0.24, 7, 0, 0, Math.PI * 2);
   context.stroke();
   context.restore();
 
@@ -340,9 +382,9 @@ function drawCurrentRock(state) {
     return;
   }
 
-  const centerX = BOARD.x + state.currentRock.position * BOARD.width;
+  const centerX = LOGICAL_WIDTH / 2;
   const bob = reduceDecorativeMotion ? 0 : Math.sin(performanceRef.now() / 210) * 8;
-  drawRock(centerX, BOARD.y - 68 + bob, state.currentRock.height, false);
+  drawRock(centerX, 400 + bob, state.currentRock.height, false);
 
   context.fillStyle = "#3b2027d9";
   context.strokeStyle = "#f7cf71";
@@ -355,7 +397,7 @@ function drawCurrentRock(state) {
   context.font = "800 25px system-ui, sans-serif";
   context.textAlign = "center";
   context.textBaseline = "middle";
-  context.fillText(`현재 바위 ${state.currentRock.height}`, centerX, 108);
+  context.fillText(`현재 나무토막 ${state.currentRock.height}`, centerX, 108);
 }
 
 function render(state) {
@@ -369,7 +411,7 @@ function render(state) {
   }
   drawSlots(state);
   drawDangerMarkers(state);
-  drawClimberDot(state);
+  drawSquirrel(state);
   drawCurrentRock(state);
   context.restore();
   drawDamageEffect(state);

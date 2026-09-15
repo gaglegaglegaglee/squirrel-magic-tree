@@ -4,7 +4,6 @@ import { readFile } from "node:fs/promises";
 
 import { bootstrapGame } from "../src/app.js";
 import { createGameController, TUTORIAL_STEPS } from "../src/game-controller.js";
-import { advanceRock } from "../src/game-state.js";
 
 class FakeEventTarget {
   constructor() {
@@ -39,7 +38,7 @@ function createUiHarness(random = () => 0.5, options = {}) {
   gameScreen.hidden = true;
   const startButton = new FakeEventTarget();
   const canvas = new FakeEventTarget();
-  canvas.getBoundingClientRect = () => ({ left: 10, top: 20, right: 810, bottom: 470 });
+  canvas.getBoundingClientRect = () => ({ left: 10, top: 20, right: 810, bottom: 470, width: 800, height: 450 });
   const healthValue = new FakeEventTarget();
   const heightValue = new FakeEventTarget();
   const gameStatus = new FakeEventTarget();
@@ -159,6 +158,15 @@ function createUiHarness(random = () => 0.5, options = {}) {
   };
 }
 
+function clickSlot(elements, slotIndex) {
+  const boardLeft = 10 + (286 / 1600) * 800;
+  const slotWidth = (1190 / 1600) * 800 / 10;
+  elements.canvas.emit("pointerdown", {
+    clientX: boardLeft + (slotIndex + 0.5) * slotWidth,
+    clientY: 200,
+  });
+}
+
 test("실제 시작 버튼 click 연결이 화면 hidden 상태와 HUD를 바꾸고 첫 Canvas 렌더를 요청한다", () => {
   const harness = createUiHarness();
   const { controller, elements, renderedStates } = harness;
@@ -178,14 +186,13 @@ test("Canvas pointerdown 연결은 내부 입력 하나만 배치하고 외부·
   const harness = createUiHarness();
   const { controller, elements, renderedStates, cancelledFrames } = harness;
   elements.startButton.emit("click");
-  advanceRock(controller.state, 2);
 
   assert.equal(elements.canvas.listeners.has("pointerdown"), true);
   elements.canvas.emit("pointerdown", { clientX: 0, clientY: 0 });
   assert.equal(controller.state.placementCount, 0);
 
-  elements.canvas.emit("pointerdown", { clientX: 400, clientY: 200 });
-  elements.canvas.emit("pointerdown", { clientX: 400, clientY: 200 });
+  clickSlot(elements, 3);
+  clickSlot(elements, 3);
 
   assert.equal(controller.state.placementCount, 1);
   assert.equal(controller.state.slots.filter((slot) => slot !== null).length, 1);
@@ -194,21 +201,15 @@ test("Canvas pointerdown 연결은 내부 입력 하나만 배치하고 외부·
   controller.destroy();
 });
 
-test("좌단 도착은 입력 없이 자동 배치하고 다음 바위 이동 프레임을 예약한다", () => {
+test("배치 단계에서는 시간 경과로 자동 배치되지 않고 빈칸 클릭을 기다린다", () => {
   const harness = createUiHarness();
   const { controller, elements, scheduledFrames } = harness;
   elements.startButton.emit("click");
-  controller.state.currentRock.position = 0.05;
-
-  scheduledFrames[0](0);
-
-  assert.equal(controller.state.placementCount, 1);
-  assert.equal(controller.state.lastPlacement.method, "automatic");
-  assert.equal(controller.state.lastPlacement.slotIndex, 0);
+  assert.equal(scheduledFrames.length, 0);
+  assert.equal(controller.state.placementCount, 0);
   assert.equal(controller.state.phase, "placing");
   assert.notEqual(controller.state.currentRock, null);
-  assert.match(elements.gameStatus.textContent, /자동 배치/);
-  assert.equal(scheduledFrames.length, 2);
+  assert.match(elements.gameStatus.textContent, /빈칸/);
   controller.destroy();
 });
 
@@ -218,9 +219,7 @@ test("열 번째 pointer 배치 뒤에는 길 완성을 알리고 추가 배치�
   elements.startButton.emit("click");
 
   for (let slotIndex = 9; slotIndex >= 0; slotIndex -= 1) {
-    controller.state.currentRock.position = (slotIndex + 0.51) / 10;
-    advanceRock(controller.state, 0);
-    elements.canvas.emit("pointerdown", { clientX: 400, clientY: 200 });
+    clickSlot(elements, slotIndex);
   }
 
   assert.equal(controller.state.phase, "path-review");
@@ -244,9 +243,7 @@ test("walking 동안 입력을 잠그고 체력 소진 착지에서 HUD와 안�
 
   for (let slotIndex = 0; slotIndex < heights.length; slotIndex += 1) {
     controller.state.currentRock.height = heights[slotIndex];
-    controller.state.currentRock.position = (slotIndex + 0.51) / 10;
-    advanceRock(controller.state, 0);
-    elements.canvas.emit("pointerdown", { clientX: 400, clientY: 200 });
+    clickSlot(elements, slotIndex);
   }
 
   const completedBoard = [...controller.state.slots];
@@ -336,17 +333,16 @@ test("첫 게임의 3단계 안내는 상태를 멈추고 완료 뒤 정확한 �
   assert.equal(elements.gameScreen.inert, false);
   assert.equal(markSeenCalls, 1);
   assert.equal(controller.state.currentRock.position, rockPosition);
-  assert.equal(scheduledFrames.length, 1);
+  assert.equal(scheduledFrames.length, 0);
   assert.match(elements.gameStatus.textContent, /저장하지 못했습니다/);
 
   elements.gameHelpButton.emit("click");
   assert.equal(elements.tutorialOverlay.hidden, false);
-  scheduledFrames[0](1000);
   assert.equal(controller.state.currentRock.position, rockPosition);
   for (let step = 0; step < TUTORIAL_STEPS.length; step += 1) {
     elements.tutorialNextButton.emit("click");
   }
-  assert.equal(scheduledFrames.length, 2);
+  assert.equal(scheduledFrames.length, 0);
   controller.destroy();
 });
 
@@ -381,7 +377,6 @@ test("도움말·화면 방향·탭 숨김 pause reason이 모두 해제된 뒤�
     ["orientation", "tutorial", "visibility"],
   );
   assert.equal(elements.orientationOverlay.hidden, false);
-  scheduledFrames[0](1000);
   assert.equal(controller.state.currentRock.position, startingPosition);
 
   for (let step = 0; step < TUTORIAL_STEPS.length; step += 1) {
@@ -391,15 +386,12 @@ test("도움말·화면 방향·탭 숨김 pause reason이 모두 해제된 뒤�
   controller.updateViewport(800, 400);
   assert.deepEqual([...controller.getPauseReasons()], ["visibility"]);
   assert.equal(elements.orientationOverlay.hidden, true);
-  assert.equal(scheduledFrames.length, 1);
+  assert.equal(scheduledFrames.length, 0);
 
   controller.setDocumentHidden(false);
   assert.equal(controller.getPauseReasons().size, 0);
-  assert.equal(scheduledFrames.length, 2);
-  scheduledFrames[1](2000);
+  assert.equal(scheduledFrames.length, 0);
   assert.equal(controller.state.currentRock.position, startingPosition);
-  scheduledFrames[2](2100);
-  assert.equal(controller.state.currentRock.position < startingPosition, true);
   controller.destroy();
 });
 
@@ -427,9 +419,7 @@ test("재로딩된 최고 기록을 시작 화면에 표시하고 나가기·초
   assert.equal(elements.startBestWalked.textContent, "42");
 
   elements.startButton.emit("click");
-  controller.state.currentRock.position = 0.75;
-  advanceRock(controller.state, 0);
-  elements.canvas.emit("pointerdown", { clientX: 400, clientY: 200 });
+  clickSlot(elements, 5);
   const boardBeforeCancel = [...controller.state.slots];
   elements.exitButton.emit("click");
   assert.equal(controller.state.screen, "game");
@@ -487,9 +477,7 @@ test("저장소 읽기·쓰기 실패를 민감한 세부 없이 안내하고 �
   const heights = [50, 1, 50, 1, 50, 1, 50, 1, 50, 1];
   for (let slotIndex = 0; slotIndex < heights.length; slotIndex += 1) {
     controller.state.currentRock.height = heights[slotIndex];
-    controller.state.currentRock.position = (slotIndex + 0.51) / 10;
-    advanceRock(controller.state, 0);
-    elements.canvas.emit("pointerdown", { clientX: 400, clientY: 200 });
+    clickSlot(elements, slotIndex);
   }
 
   let now = 0;
@@ -505,16 +493,14 @@ test("저장소 읽기·쓰기 실패를 민감한 세부 없이 안내하고 �
   controller.destroy();
 });
 
-test("피해 없이 생존하면 UI가 10번째 바위 완주와 최종 높이를 알린다", () => {
+test("피해 없이 생존하면 UI가 10번째 나무토막 완주와 최종 높이를 알린다", () => {
   const harness = createUiHarness();
   const { controller, elements, scheduledFrames } = harness;
   elements.startButton.emit("click");
 
   for (let slotIndex = 0; slotIndex < 10; slotIndex += 1) {
     controller.state.currentRock.height = 25;
-    controller.state.currentRock.position = (slotIndex + 0.51) / 10;
-    advanceRock(controller.state, 0);
-    elements.canvas.emit("pointerdown", { clientX: 400, clientY: 200 });
+    clickSlot(elements, slotIndex);
   }
 
   let now = 0;
@@ -553,7 +539,7 @@ test("피해 없이 생존하면 UI가 10번째 바위 완주와 최종 높이�
   assert.equal(controller.state.slots.every((height) => height === null), true);
   assert.notEqual(controller.state.currentRock, null);
   assert.equal(controller.state.characterSlot, -1);
-  assert.match(elements.gameStatus.textContent, /1\.05배/);
+  assert.match(elements.gameStatus.textContent, /나무토막/);
   controller.destroy();
 });
 
@@ -677,18 +663,18 @@ test("브라우저 진입 모듈은 시작 click부터 실제 Canvas 10칸 렌�
   assert.equal(drawingCalls.includes("setTransform"), true);
   assert.equal(drawingCalls.includes("clearRect"), true);
 
-  advanceRock(controller.state, 2);
   canvas.emit("pointerdown", { clientX: 800, clientY: 450 });
   canvas.emit("pointerdown", { clientX: 800, clientY: 450 });
   assert.equal(controller.state.placementCount, 1);
   assert.equal(controller.state.slots.filter((slot) => slot !== null).length, 1);
 
-  const remainingSlots = [0, 1, 2, 3, 4, 5, 6, 8, 9];
+  const remainingSlots = [0, 1, 2, 3, 5, 6, 7, 8, 9];
   for (const slotIndex of remainingSlots) {
     controller.state.currentRock.height = slotIndex === 0 ? 50 : slotIndex === 1 ? 1 : 10;
-    controller.state.currentRock.position = (slotIndex + 0.51) / 10;
-    advanceRock(controller.state, 0);
-    canvas.emit("pointerdown", { clientX: 800, clientY: 450 });
+    canvas.emit("pointerdown", {
+      clientX: 286 + (slotIndex + 0.5) * 119,
+      clientY: 450,
+    });
   }
   assert.equal(controller.state.phase, "path-review");
   assert.equal(drawnTexts.includes("-49"), true);

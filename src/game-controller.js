@@ -1,9 +1,8 @@
 import {
   advanceCameraTransition,
-  advanceRock,
   advanceWalk,
   createInitialState,
-  placeCurrentRock,
+  placeCurrentRockAtSlot,
   startGame,
 } from "./game-state.js";
 import {
@@ -15,8 +14,8 @@ import {
 import { createTutorialStore } from "./tutorial-store.js";
 
 export const TUTORIAL_STEPS = Object.freeze([
-  "지금 받은 바위를 보고 앞으로 나올 높이를 예상하세요.",
-  "바위가 원하는 빈칸 위에 왔을 때 화면을 터치하거나 클릭하세요.",
+  "화면 위에 나타난 나무토막의 높이를 확인하세요.",
+  "원하는 빈칸을 터치하거나 클릭하면 나무토막이 그 자리에 바로 꽂힙니다.",
   "내리막은 높이 차이만큼 피해를 받고, 연속 오르막은 체력을 1, 3, 7…씩 회복합니다.",
 ]);
 
@@ -30,6 +29,21 @@ export function pointIsInsideElement(element, clientX, clientY) {
     clientY >= rect.top &&
     clientY <= rect.bottom
   );
+}
+
+export function slotIndexFromCanvasX(canvas, clientX) {
+  const rect = canvas.getBoundingClientRect();
+  if (!Number.isFinite(clientX) || !Number.isFinite(rect.width) || rect.width <= 0) {
+    return null;
+  }
+
+  const logicalX = ((clientX - rect.left) / rect.width) * 1600;
+  const boardX = 286;
+  const boardWidth = 1190;
+  if (logicalX < boardX || logicalX > boardX + boardWidth) {
+    return null;
+  }
+  return Math.min(9, Math.floor(((logicalX - boardX) / boardWidth) * 10));
 }
 
 export function createGameController({
@@ -143,7 +157,6 @@ export function createGameController({
 
   function animationIsActive() {
     return (
-      state.phase === "placing" ||
       state.phase === "path-review" ||
       state.phase === "walking" ||
       state.phase === "camera-transition"
@@ -162,8 +175,7 @@ export function createGameController({
       return;
     }
 
-    const placementNote = placement.method === "automatic" ? "자동 배치" : "배치";
-    gameStatus.textContent = `${placement.height} 높이 바위 ${placementNote} · ${state.placementCount}/10`;
+    gameStatus.textContent = `${placement.height} 높이 나무토막 배치 · ${state.placementCount}/10`;
   }
 
   function render() {
@@ -273,7 +285,7 @@ export function createGameController({
 
   function updateWalkingMessage(previousPhase, previousCharacterSlot) {
     if (previousPhase === "path-review" && state.phase === "walking") {
-      gameStatus.textContent = "점이 완성된 길을 따라 튀기 시작합니다.";
+      gameStatus.textContent = "다람쥐가 완성된 나무 길을 따라 뛰기 시작합니다.";
       return;
     }
 
@@ -283,7 +295,7 @@ export function createGameController({
 
     updateHud();
     if (state.phase === "game-over") {
-      gameStatus.textContent = `체력 소진! ${state.characterSlot + 1}번째 바위에서 멈췄습니다.`;
+      gameStatus.textContent = `체력 소진! ${state.characterSlot + 1}번째 나무토막에서 멈췄습니다.`;
     } else if (state.phase === "camera-transition") {
       gameStatus.textContent = `구간 완주! 높이 ${state.baseHeight}m에서 다음 층으로 올라갑니다.`;
     } else if (state.lastDamage > 0) {
@@ -291,7 +303,7 @@ export function createGameController({
     } else if (state.lastHealing > 0) {
       gameStatus.textContent = `연속 오르막 ${state.ascendingStreak} · 체력 +${state.lastHealing}`;
     } else {
-      gameStatus.textContent = `${state.characterSlot + 1}/10 바위에 안전하게 착지했습니다.`;
+      gameStatus.textContent = `${state.characterSlot + 1}/10 나무토막에 안전하게 착지했습니다.`;
     }
   }
 
@@ -305,9 +317,7 @@ export function createGameController({
     const placementCountBeforeFrame = state.placementCount;
     const previousPhase = state.phase;
     const previousCharacterSlot = state.characterSlot;
-    if (state.phase === "placing") {
-      advanceRock(state, elapsedSeconds, random);
-    } else if (state.phase === "path-review" || state.phase === "walking") {
+    if (state.phase === "path-review" || state.phase === "walking") {
       advanceWalk(state, elapsedSeconds);
     } else if (state.phase === "camera-transition") {
       advanceCameraTransition(state, elapsedSeconds, random);
@@ -319,7 +329,7 @@ export function createGameController({
     if (previousPhase === "camera-transition" && state.phase === "placing") {
       updateHud();
       canvas.style.cursor = "pointer";
-      gameStatus.textContent = `${state.completedSections + 1}번째 구간 · 바위 속도 ${state.rockSpeedMultiplier.toFixed(2)}배`;
+      gameStatus.textContent = `${state.completedSections + 1}번째 구간 · 나무토막을 놓을 빈칸을 선택하세요.`;
     }
     showGameOverResult();
     render();
@@ -339,7 +349,7 @@ export function createGameController({
     startScreen.hidden = true;
     gameScreen.hidden = false;
     updateHud();
-    gameStatus.textContent = "바위가 원하는 칸 위에 왔을 때 게임판을 터치하세요.";
+    gameStatus.textContent = "위의 나무토막을 놓을 빈칸을 선택하세요.";
     resultOverlay.hidden = true;
     gameOverHandled = false;
     previousFrameTime = null;
@@ -371,7 +381,7 @@ export function createGameController({
     gameOverHandled = false;
     previousFrameTime = null;
     updateHud();
-    gameStatus.textContent = "새 도전이 시작되었습니다. 바위를 배치하세요.";
+    gameStatus.textContent = "새 도전이 시작되었습니다. 나무토막을 놓을 빈칸을 선택하세요.";
     render();
     syncEnvironmentPauses();
     if (pauseReasons.size === 0) {
@@ -431,12 +441,17 @@ export function createGameController({
       return false;
     }
 
-    if (!placeCurrentRock(state, random)) {
+    const slotIndex = slotIndexFromCanvasX(canvas, event.clientX);
+    if (!placeCurrentRockAtSlot(state, slotIndex, random)) {
       return false;
     }
 
     updatePlacementMessage();
     render();
+    if (state.phase === "path-review") {
+      previousFrameTime = null;
+      scheduleAnimationFrame();
+    }
     return true;
   }
 

@@ -2,7 +2,6 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { createGameController, TUTORIAL_STEPS } from "../src/game-controller.js";
-import { advanceRock } from "../src/game-state.js";
 
 class FakeElement {
   constructor(hidden = false) {
@@ -44,7 +43,7 @@ function integrationHarness() {
   elements.resultOverlay.hidden = true;
   elements.tutorialOverlay.hidden = true;
   elements.orientationOverlay.hidden = true;
-  elements.canvas.getBoundingClientRect = () => ({ left: 0, top: 0, right: 1000, bottom: 600 });
+  elements.canvas.getBoundingClientRect = () => ({ left: 0, top: 0, right: 1000, bottom: 600, width: 1000, height: 600 });
   const scheduledFrames = [];
   const cancelledFrames = [];
   const savedRecords = [];
@@ -83,9 +82,7 @@ function integrationHarness() {
 function placeHeights(controller, elements, heights) {
   for (let slotIndex = 0; slotIndex < heights.length; slotIndex += 1) {
     controller.state.currentRock.height = heights[slotIndex];
-    controller.state.currentRock.position = (slotIndex + 0.51) / 10;
-    advanceRock(controller.state, 0);
-    elements.canvas.emit("pointerdown", { clientX: 500, clientY: 300 });
+    elements.canvas.emit("pointerdown", { clientX: 179 + (slotIndex + 0.5) * 74.375, clientY: 300 });
   }
 }
 
@@ -102,7 +99,7 @@ test("시작→첫 안내→첫 구간→다음 구간→사망→기록→재�
   }
   assert.equal(elements.tutorialOverlay.hidden, true);
   assert.equal(harness.tutorialSeen(), true);
-  assert.equal(scheduledFrames.length, 1);
+  assert.equal(scheduledFrames.length, 0);
 
   placeHeights(controller, elements, Array(10).fill(10));
   let frameIndex = 0;

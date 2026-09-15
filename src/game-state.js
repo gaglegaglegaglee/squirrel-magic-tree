@@ -214,6 +214,21 @@ export function placeCurrentRock(state, random = Math.random) {
   return finishPlacement(state, state.highlightedSlot, "manual", random);
 }
 
+export function placeCurrentRockAtSlot(state, slotIndex, random = Math.random) {
+  if (
+    state.phase !== "placing" ||
+    !state.currentRock ||
+    !Number.isInteger(slotIndex) ||
+    slotIndex < 0 ||
+    slotIndex >= SLOT_COUNT ||
+    state.slots[slotIndex] !== null
+  ) {
+    return false;
+  }
+
+  return finishPlacement(state, slotIndex, "manual", random);
+}
+
 function landOnNextRock(state) {
   const nextSlot = state.characterSlot + 1;
   if (nextSlot >= SLOT_COUNT) {
