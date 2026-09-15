@@ -10,6 +10,7 @@ import {
   advanceRock,
   advanceWalk,
   autoPlaceCurrentRock,
+  cameraOffsetForProgress,
   createInitialState,
   placeCurrentRock,
   speedMultiplierForSections,
@@ -124,4 +125,11 @@ test("속도 배수는 구간마다 0.05 상승해 2.00에서 멈추고 바위 �
   assert.equal(Math.abs(fastDistance - normalDistance * 2) < 1e-12, true);
   assert.equal(WALK_STEP_SECONDS, 0.55);
   assert.equal(CAMERA_TRANSITION_SECONDS, 0.9);
+});
+
+test("카메라는 전환 내내 한 방향인 오른쪽 위로 이동한다", () => {
+  assert.deepEqual(cameraOffsetForProgress(0), { x: 0, y: 0 });
+  assert.deepEqual(cameraOffsetForProgress(0.5), { x: -160, y: 95 });
+  assert.deepEqual(cameraOffsetForProgress(1), { x: -320, y: 190 });
+  assert.deepEqual(cameraOffsetForProgress(2), { x: -320, y: 190 });
 });

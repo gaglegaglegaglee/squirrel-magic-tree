@@ -10,6 +10,8 @@ const ROCK_SPEED_PER_SECOND = 0.13;
 export const PATH_REVIEW_SECONDS = 0.8;
 export const WALK_STEP_SECONDS = 0.55;
 export const CAMERA_TRANSITION_SECONDS = 0.9;
+export const CAMERA_HORIZONTAL_SHIFT = 320;
+export const CAMERA_VERTICAL_SHIFT = 190;
 
 export function speedMultiplierForSections(completedSections) {
   const safeSections = Number.isFinite(completedSections)
@@ -41,6 +43,23 @@ export function calculateDropDamage(previousHeight, nextHeight) {
   return Math.max(0, from - to);
 }
 
+export function calculateAscendingRecovery(previousHeight, nextHeight, currentStreak = 0) {
+  if (!Number.isFinite(previousHeight) || !Number.isFinite(nextHeight) || nextHeight <= previousHeight) {
+    return { streak: 0, recovery: 0 };
+  }
+
+  const streak = Math.max(0, Math.floor(currentStreak)) + 1;
+  return { streak, recovery: 2 ** streak - 1 };
+}
+
+export function cameraOffsetForProgress(progress) {
+  const safeProgress = Number.isFinite(progress) ? Math.min(1, Math.max(0, progress)) : 0;
+  return {
+    x: safeProgress === 0 ? 0 : -CAMERA_HORIZONTAL_SHIFT * safeProgress,
+    y: CAMERA_VERTICAL_SHIFT * safeProgress,
+  };
+}
+
 export function findDangerousDrops(slots) {
   const drops = [];
   for (let fromIndex = 0; fromIndex < slots.length - 1; fromIndex += 1) {
@@ -70,6 +89,8 @@ export function createInitialState() {
     walkProgress: 0,
     walkedSlots: 0,
     lastDamage: 0,
+    ascendingStreak: 0,
+    lastHealing: 0,
     completedSections: 0,
     rockSpeedMultiplier: 1,
     cameraTransitionRemaining: 0,
@@ -98,6 +119,8 @@ export function startGame(state, random = Math.random) {
   state.walkProgress = 0;
   state.walkedSlots = 0;
   state.lastDamage = 0;
+  state.ascendingStreak = 0;
+  state.lastHealing = 0;
   state.completedSections = 0;
   state.rockSpeedMultiplier = 1;
   state.cameraTransitionRemaining = 0;
@@ -189,7 +212,13 @@ function landOnNextRock(state) {
   const previousHeight = state.characterSlot < 0 ? 0 : state.slots[state.characterSlot];
   const nextHeight = state.slots[nextSlot];
   const damage = calculateDropDamage(previousHeight, nextHeight);
+  const ascent = state.characterSlot < 0
+    ? { streak: 0, recovery: 0 }
+    : calculateAscendingRecovery(previousHeight, nextHeight, state.ascendingStreak);
   state.health = Math.max(0, state.health - damage);
+  state.ascendingStreak = ascent.streak;
+  state.lastHealing = Math.min(ascent.recovery, STARTING_HEALTH - state.health);
+  state.health += state.lastHealing;
   state.lastDamage = damage;
   state.characterSlot = nextSlot;
   state.currentHeight = state.baseHeight + nextHeight;
@@ -262,6 +291,8 @@ export function advanceCameraTransition(state, elapsedSeconds, random = Math.ran
   state.characterSlot = -1;
   state.walkProgress = 0;
   state.lastDamage = 0;
+  state.ascendingStreak = 0;
+  state.lastHealing = 0;
   state.cameraTransitionRemaining = 0;
   state.cameraTransitionProgress = 0;
   return true;

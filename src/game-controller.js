@@ -17,7 +17,7 @@ import { createTutorialStore } from "./tutorial-store.js";
 export const TUTORIAL_STEPS = Object.freeze([
   "지금 받은 바위를 보고 앞으로 나올 높이를 예상하세요.",
   "바위가 원하는 빈칸 위에 왔을 때 화면을 터치하거나 클릭하세요.",
-  "높은 바위에서 낮은 바위로 내려가면 높이 차이만큼 체력이 줄어듭니다.",
+  "내리막은 높이 차이만큼 피해를 받고, 연속 오르막은 체력을 1, 3, 7…씩 회복합니다.",
 ]);
 
 export function pointIsInsideElement(element, clientX, clientY) {
@@ -287,6 +287,8 @@ export function createGameController({
       gameStatus.textContent = `구간 완주! 높이 ${state.baseHeight}m에서 다음 층으로 올라갑니다.`;
     } else if (state.lastDamage > 0) {
       gameStatus.textContent = `낙차 피해 ${state.lastDamage} · 남은 체력 ${state.health}`;
+    } else if (state.lastHealing > 0) {
+      gameStatus.textContent = `연속 오르막 ${state.ascendingStreak} · 체력 +${state.lastHealing}`;
     } else {
       gameStatus.textContent = `${state.characterSlot + 1}/10 바위에 안전하게 착지했습니다.`;
     }

@@ -1,5 +1,5 @@
 import { createGameController } from "./game-controller.js";
-import { SLOT_COUNT } from "./game-state.js";
+import { SLOT_COUNT, cameraOffsetForProgress } from "./game-state.js";
 import { createBestRecordStore } from "./record-store.js";
 import { createTutorialStore } from "./tutorial-store.js";
 
@@ -345,7 +345,8 @@ function render(state) {
   drawBackground();
   context.save();
   if (state.phase === "camera-transition") {
-    context.translate(0, state.cameraTransitionProgress * 190);
+    const cameraOffset = cameraOffsetForProgress(state.cameraTransitionProgress);
+    context.translate(cameraOffset.x, cameraOffset.y);
   }
   drawSlots(state);
   drawDangerMarkers(state);

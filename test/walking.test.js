@@ -7,6 +7,7 @@ import {
   WALK_STEP_SECONDS,
   advanceRock,
   advanceWalk,
+  calculateAscendingRecovery,
   calculateDropDamage,
   createInitialState,
   findDangerousDrops,
@@ -50,6 +51,50 @@ test("낙차 계산은 내리막 차이만 반환한다", () => {
   assert.equal(calculateDropDamage(50, 1), 49);
   assert.equal(calculateDropDamage(1, 50), 0);
   assert.equal(calculateDropDamage(25, 25), 0);
+});
+
+test("연속 오름차순 회복은 1, 3, 7로 늘고 같은 높이나 내리막에서 초기화된다", () => {
+  assert.deepEqual(calculateAscendingRecovery(10, 20, 0), { streak: 1, recovery: 1 });
+  assert.deepEqual(calculateAscendingRecovery(20, 30, 1), { streak: 2, recovery: 3 });
+  assert.deepEqual(calculateAscendingRecovery(30, 40, 2), { streak: 3, recovery: 7 });
+  assert.deepEqual(calculateAscendingRecovery(30, 30, 3), { streak: 0, recovery: 0 });
+  assert.deepEqual(calculateAscendingRecovery(30, 10, 3), { streak: 0, recovery: 0 });
+});
+
+test("오름차순 착지는 실제 체력을 1, 3, 7 회복하고 최대 100을 넘지 않는다", () => {
+  const state = completeBoard([10, 20, 30, 40, 40, 50, 10, 20, 30, 40]);
+  state.health = 80;
+  startWalking(state);
+
+  landOnce(state);
+  assert.equal(state.health, 80);
+  landOnce(state);
+  assert.equal(state.health, 81);
+  landOnce(state);
+  assert.equal(state.health, 84);
+  landOnce(state);
+  assert.equal(state.health, 91);
+  landOnce(state);
+  assert.equal(state.ascendingStreak, 0);
+  landOnce(state);
+  assert.equal(state.health, 92);
+  landOnce(state);
+  assert.equal(state.health, 52);
+  assert.equal(state.ascendingStreak, 0);
+  landOnce(state);
+  assert.equal(state.health, 53);
+  landOnce(state);
+  assert.equal(state.health, 56);
+  landOnce(state);
+  assert.equal(state.health, 63);
+
+  const cappedState = completeBoard([10, 20, 30, 40, 40, 40, 40, 40, 40, 40]);
+  cappedState.health = 99;
+  startWalking(cappedState);
+  landOnce(cappedState);
+  landOnce(cappedState);
+  landOnce(cappedState);
+  assert.equal(cappedState.health, 100);
 });
 
 test("위험 표시는 인접 내리막만 왼쪽 순서로 만들고 기준면→첫 바위는 제외한다", () => {
