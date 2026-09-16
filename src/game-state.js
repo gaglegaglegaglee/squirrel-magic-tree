@@ -287,9 +287,13 @@ function landOnNextRock(state) {
   const ascent = state.characterSlot < 0
     ? { streak: 0, recovery: 0 }
     : calculateAscendingRecovery(previousHeight, nextHeight, state.ascendingStreak);
+  const safeFlowContinues =
+    ascent.streak > 0 &&
+    nextSlot < SLOT_COUNT - 1 &&
+    state.slots[nextSlot + 1] >= nextHeight;
   state.health = Math.max(0, state.health - damage);
   state.ascendingStreak = ascent.streak;
-  state.lastHealing = ascent.recovery;
+  state.lastHealing = ascent.streak > 0 && !safeFlowContinues ? ascent.recovery : 0;
   state.health += state.lastHealing;
   state.recoveryEffectRemaining = state.lastHealing > 0 ? 0.7 : 0;
   state.lastDamage = damage;

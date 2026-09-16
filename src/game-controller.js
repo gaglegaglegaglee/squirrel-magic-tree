@@ -17,7 +17,7 @@ import { createTutorialStore } from "./tutorial-store.js";
 export const TUTORIAL_STEPS = Object.freeze([
   "화면 위에 나타난 나무토막의 높이를 확인하세요.",
   "원하는 빈칸을 터치하거나 클릭하면 나무토막이 그 자리에 바로 꽂힙니다.",
-  "같거나 높은 칸으로 연속 이동하면 도토리를 1, 3, 7…개씩 얻고, 내리막에서는 높이 차이만큼 떨어뜨립니다.",
+  "같거나 높은 칸을 연속으로 지나면 흐름 끝에 가장 큰 도토리 보상을 한 번 얻고, 내리막에서는 높이 차이만큼 떨어뜨립니다.",
 ]);
 
 export function pointIsInsideElement(element, clientX, clientY) {
@@ -304,7 +304,7 @@ export function createGameController({
     } else if (state.lastDamage > 0) {
       gameStatus.textContent = `도토리 ${state.lastDamage}개를 떨어뜨렸습니다 · 남은 도토리 ${state.health}개`;
     } else if (state.lastHealing > 0) {
-      gameStatus.textContent = `안전한 연속 이동 ${state.ascendingStreak} · 도토리 +${state.lastHealing}개`;
+      gameStatus.textContent = `안전한 연속 이동 ${state.ascendingStreak}회 완성 · 도토리 +${state.lastHealing}개`;
     } else {
       gameStatus.textContent = `${state.characterSlot + 1}/10 나무토막에 안전하게 착지했습니다.`;
     }

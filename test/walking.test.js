@@ -61,7 +61,7 @@ test("같거나 높은 칸의 도토리 획득은 1, 3, 7로 늘고 내리막에
   assert.deepEqual(calculateAscendingRecovery(30, 10, 3), { streak: 0, recovery: 0 });
 });
 
-test("같거나 높은 칸 착지는 도토리를 1, 3, 7개씩 얻고 100개를 넘어 누적한다", () => {
+test("같거나 높은 연속 흐름은 중간에 누적하지 않고 가장 큰 보상만 끝에서 한 번 지급한다", () => {
   const state = completeBoard([10, 20, 30, 40, 40, 50, 10, 20, 30, 40]);
   state.health = 80;
   startWalking(state);
@@ -69,34 +69,34 @@ test("같거나 높은 칸 착지는 도토리를 1, 3, 7개씩 얻고 100개를
   landOnce(state);
   assert.equal(state.health, 80);
   landOnce(state);
-  assert.equal(state.health, 81);
+  assert.equal(state.health, 80);
   landOnce(state);
-  assert.equal(state.health, 84);
+  assert.equal(state.health, 80);
   landOnce(state);
-  assert.equal(state.health, 91);
+  assert.equal(state.health, 80);
   landOnce(state);
-  assert.equal(state.health, 106);
+  assert.equal(state.health, 80);
   assert.equal(state.ascendingStreak, 4);
   landOnce(state);
-  assert.equal(state.health, 137);
+  assert.equal(state.health, 111);
+  assert.equal(state.lastHealing, 31);
   landOnce(state);
-  assert.equal(state.health, 97);
+  assert.equal(state.health, 71);
   assert.equal(state.ascendingStreak, 0);
   landOnce(state);
-  assert.equal(state.health, 98);
+  assert.equal(state.health, 71);
   landOnce(state);
-  assert.equal(state.health, 101);
+  assert.equal(state.health, 71);
   landOnce(state);
-  assert.equal(state.health, 108);
+  assert.equal(state.health, 78);
+  assert.equal(state.lastHealing, 7);
 
   const cappedState = completeBoard([10, 20, 30, 40, 40, 40, 40, 40, 40, 40]);
   cappedState.health = 99;
   startWalking(cappedState);
-  landOnce(cappedState);
-  landOnce(cappedState);
-  landOnce(cappedState);
-  assert.equal(cappedState.health, 103);
-  assert.equal(cappedState.lastHealing, 3);
+  for (let index = 0; index < SLOT_COUNT; index += 1) landOnce(cappedState);
+  assert.equal(cappedState.health, 610);
+  assert.equal(cappedState.lastHealing, 511);
 });
 
 test("위험 표시는 인접 내리막만 왼쪽 순서로 만들고 기준면→첫 바위는 제외한다", () => {
@@ -128,7 +128,7 @@ test("짧은 길 확인 시간이 끝난 뒤 슬롯 0부터 9까지 순서대로
   assert.deepEqual(visitedSlots, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
   assert.equal(state.phase, "camera-transition");
   assert.equal(state.walkedSlots, 10);
-  assert.equal(state.health, 1113);
+  assert.equal(state.health, 611);
   assert.equal(state.currentHeight, 50);
   assert.equal(state.baseHeight, 50);
   assert.equal(state.completedSections, 1);

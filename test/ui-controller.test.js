@@ -515,8 +515,8 @@ test("피해 없이 생존하면 UI가 10번째 나무토막 완주와 최종 �
   assert.equal(controller.state.phase, "camera-transition");
   assert.equal(controller.state.characterSlot, 9);
   assert.equal(controller.state.walkedSlots, 10);
-  assert.equal(controller.state.health, 1113);
-  assert.equal(elements.healthValue.textContent, "1113개");
+  assert.equal(controller.state.health, 611);
+  assert.equal(elements.healthValue.textContent, "611개");
   assert.equal(elements.heightValue.textContent, "25");
   assert.match(elements.gameStatus.textContent, /구간 완주/);
 
