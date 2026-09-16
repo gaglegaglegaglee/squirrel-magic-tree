@@ -53,15 +53,15 @@ test("낙차 계산은 내리막 차이만 반환한다", () => {
   assert.equal(calculateDropDamage(25, 25), 0);
 });
 
-test("연속 오름차순 회복은 1, 3, 7로 늘고 같은 높이나 내리막에서 초기화된다", () => {
+test("같거나 높은 칸의 도토리 획득은 1, 3, 7로 늘고 내리막에서만 초기화된다", () => {
   assert.deepEqual(calculateAscendingRecovery(10, 20, 0), { streak: 1, recovery: 1 });
   assert.deepEqual(calculateAscendingRecovery(20, 30, 1), { streak: 2, recovery: 3 });
   assert.deepEqual(calculateAscendingRecovery(30, 40, 2), { streak: 3, recovery: 7 });
-  assert.deepEqual(calculateAscendingRecovery(30, 30, 3), { streak: 0, recovery: 0 });
+  assert.deepEqual(calculateAscendingRecovery(30, 30, 3), { streak: 4, recovery: 15 });
   assert.deepEqual(calculateAscendingRecovery(30, 10, 3), { streak: 0, recovery: 0 });
 });
 
-test("오름차순 착지는 도토리를 1, 3, 7개 되찾고 최대 100개를 넘지 않는다", () => {
+test("같거나 높은 칸 착지는 도토리를 1, 3, 7개씩 얻고 100개를 넘어 누적한다", () => {
   const state = completeBoard([10, 20, 30, 40, 40, 50, 10, 20, 30, 40]);
   state.health = 80;
   startWalking(state);
@@ -75,18 +75,19 @@ test("오름차순 착지는 도토리를 1, 3, 7개 되찾고 최대 100개를 
   landOnce(state);
   assert.equal(state.health, 91);
   landOnce(state);
+  assert.equal(state.health, 106);
+  assert.equal(state.ascendingStreak, 4);
+  landOnce(state);
+  assert.equal(state.health, 137);
+  landOnce(state);
+  assert.equal(state.health, 97);
   assert.equal(state.ascendingStreak, 0);
   landOnce(state);
-  assert.equal(state.health, 92);
+  assert.equal(state.health, 98);
   landOnce(state);
-  assert.equal(state.health, 52);
-  assert.equal(state.ascendingStreak, 0);
+  assert.equal(state.health, 101);
   landOnce(state);
-  assert.equal(state.health, 53);
-  landOnce(state);
-  assert.equal(state.health, 56);
-  landOnce(state);
-  assert.equal(state.health, 63);
+  assert.equal(state.health, 108);
 
   const cappedState = completeBoard([10, 20, 30, 40, 40, 40, 40, 40, 40, 40]);
   cappedState.health = 99;
@@ -94,7 +95,8 @@ test("오름차순 착지는 도토리를 1, 3, 7개 되찾고 최대 100개를 
   landOnce(cappedState);
   landOnce(cappedState);
   landOnce(cappedState);
-  assert.equal(cappedState.health, 100);
+  assert.equal(cappedState.health, 103);
+  assert.equal(cappedState.lastHealing, 3);
 });
 
 test("위험 표시는 인접 내리막만 왼쪽 순서로 만들고 기준면→첫 바위는 제외한다", () => {
@@ -126,7 +128,7 @@ test("짧은 길 확인 시간이 끝난 뒤 슬롯 0부터 9까지 순서대로
   assert.deepEqual(visitedSlots, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
   assert.equal(state.phase, "camera-transition");
   assert.equal(state.walkedSlots, 10);
-  assert.equal(state.health, 100);
+  assert.equal(state.health, 1113);
   assert.equal(state.currentHeight, 50);
   assert.equal(state.baseHeight, 50);
   assert.equal(state.completedSections, 1);

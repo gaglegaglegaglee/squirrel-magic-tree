@@ -11,6 +11,8 @@ const ROCK_SPEED_PER_SECOND = 0.13;
 export const PATH_REVIEW_SECONDS = 0.8;
 export const WALK_STEP_SECONDS = 0.55;
 export const CAMERA_TRANSITION_SECONDS = 0.9;
+export const ROCK_ARRIVAL_SECONDS = 0.52;
+export const ROCK_PLACEMENT_SECONDS = 0.38;
 export const CAMERA_HORIZONTAL_SHIFT = 320;
 export const CAMERA_VERTICAL_SHIFT = 190;
 
@@ -21,11 +23,13 @@ export function speedMultiplierForSections(completedSections) {
   return Math.min(200, 100 + safeSections * 5) / 100;
 }
 
-function createMovingRock(random) {
+function createMovingRock(random, spawnDelay = 0) {
   return {
     height: randomRockHeight(random),
     position: ROCK_START_POSITION,
     fixedSlot: null,
+    spawnDelay,
+    spawnProgress: 0,
   };
 }
 
@@ -45,7 +49,7 @@ export function calculateDropDamage(previousHeight, nextHeight) {
 }
 
 export function calculateAscendingRecovery(previousHeight, nextHeight, currentStreak = 0) {
-  if (!Number.isFinite(previousHeight) || !Number.isFinite(nextHeight) || nextHeight <= previousHeight) {
+  if (!Number.isFinite(previousHeight) || !Number.isFinite(nextHeight) || nextHeight < previousHeight) {
     return { streak: 0, recovery: 0 };
   }
 
@@ -93,6 +97,7 @@ export function createInitialState() {
     highlightedSlot: null,
     placementCount: 0,
     lastPlacement: null,
+    placementAnimation: null,
     dangerousDrops: [],
     pathReviewRemaining: 0,
     characterSlot: -1,
@@ -102,6 +107,7 @@ export function createInitialState() {
     damageEffectRemaining: 0,
     ascendingStreak: 0,
     lastHealing: 0,
+    recoveryEffectRemaining: 0,
     completedSections: 0,
     rockSpeedMultiplier: 1,
     cameraTransitionRemaining: 0,
@@ -125,6 +131,7 @@ export function startGame(state, random = Math.random) {
   state.highlightedSlot = null;
   state.placementCount = 0;
   state.lastPlacement = null;
+  state.placementAnimation = null;
   state.dangerousDrops = [];
   state.pathReviewRemaining = 0;
   state.characterSlot = -1;
@@ -134,6 +141,7 @@ export function startGame(state, random = Math.random) {
   state.damageEffectRemaining = 0;
   state.ascendingStreak = 0;
   state.lastHealing = 0;
+  state.recoveryEffectRemaining = 0;
   state.completedSections = 0;
   state.rockSpeedMultiplier = 1;
   state.cameraTransitionRemaining = 0;
@@ -155,6 +163,11 @@ function finishPlacement(state, slotIndex, method, random) {
   state.slots[slotIndex] = placedHeight;
   state.placementCount += 1;
   state.lastPlacement = { slotIndex, height: placedHeight, method };
+  state.placementAnimation = {
+    slotIndex,
+    height: placedHeight,
+    remaining: ROCK_PLACEMENT_SECONDS,
+  };
   state.highlightedSlot = null;
 
   if (state.placementCount === SLOT_COUNT) {
@@ -167,9 +180,39 @@ function finishPlacement(state, slotIndex, method, random) {
     return true;
   }
 
-  state.currentRock = createMovingRock(random);
+  state.currentRock = createMovingRock(random, ROCK_PLACEMENT_SECONDS);
   state.phase = "placing";
   return true;
+}
+
+export function advancePlacementAnimations(state, elapsedSeconds) {
+  const safeElapsed = Number.isFinite(elapsedSeconds) ? Math.max(0, elapsedSeconds) : 0;
+  let changed = false;
+
+  if (state.placementAnimation) {
+    state.placementAnimation.remaining = Math.max(
+      0,
+      state.placementAnimation.remaining - safeElapsed,
+    );
+    if (state.placementAnimation.remaining === 0) {
+      state.placementAnimation = null;
+    }
+    changed = true;
+  }
+
+  if (state.currentRock && state.currentRock.spawnProgress < 1) {
+    const activeElapsed = Math.max(0, safeElapsed - state.currentRock.spawnDelay);
+    state.currentRock.spawnDelay = Math.max(0, state.currentRock.spawnDelay - safeElapsed);
+    if (activeElapsed > 0) {
+      state.currentRock.spawnProgress = Math.min(
+        1,
+        state.currentRock.spawnProgress + activeElapsed / ROCK_ARRIVAL_SECONDS,
+      );
+    }
+    changed = true;
+  }
+
+  return changed;
 }
 
 export function autoPlaceCurrentRock(state, random = Math.random) {
@@ -246,8 +289,9 @@ function landOnNextRock(state) {
     : calculateAscendingRecovery(previousHeight, nextHeight, state.ascendingStreak);
   state.health = Math.max(0, state.health - damage);
   state.ascendingStreak = ascent.streak;
-  state.lastHealing = Math.min(ascent.recovery, STARTING_HEALTH - state.health);
+  state.lastHealing = ascent.recovery;
   state.health += state.lastHealing;
+  state.recoveryEffectRemaining = state.lastHealing > 0 ? 0.7 : 0;
   state.lastDamage = damage;
   state.damageEffectRemaining = damage > 0 ? 0.7 : 0;
   state.characterSlot = nextSlot;
@@ -274,6 +318,7 @@ export function advanceWalk(state, elapsedSeconds) {
 
   const safeElapsed = Number.isFinite(elapsedSeconds) ? Math.max(0, elapsedSeconds) : 0;
   state.damageEffectRemaining = Math.max(0, state.damageEffectRemaining - safeElapsed);
+  state.recoveryEffectRemaining = Math.max(0, state.recoveryEffectRemaining - safeElapsed);
   if (state.phase === "path-review") {
     state.pathReviewRemaining = Math.max(0, state.pathReviewRemaining - safeElapsed);
     if (state.pathReviewRemaining === 0) {
@@ -302,6 +347,7 @@ export function advanceCameraTransition(state, elapsedSeconds, random = Math.ran
 
   const safeElapsed = Number.isFinite(elapsedSeconds) ? Math.max(0, elapsedSeconds) : 0;
   state.damageEffectRemaining = Math.max(0, state.damageEffectRemaining - safeElapsed);
+  state.recoveryEffectRemaining = Math.max(0, state.recoveryEffectRemaining - safeElapsed);
   state.cameraTransitionRemaining = Math.max(0, state.cameraTransitionRemaining - safeElapsed);
   state.cameraTransitionProgress = Math.min(
     1,
@@ -319,6 +365,7 @@ export function advanceCameraTransition(state, elapsedSeconds, random = Math.ran
   state.highlightedSlot = null;
   state.placementCount = 0;
   state.lastPlacement = null;
+  state.placementAnimation = null;
   state.dangerousDrops = [];
   state.pathReviewRemaining = 0;
   state.characterSlot = -1;
@@ -327,6 +374,7 @@ export function advanceCameraTransition(state, elapsedSeconds, random = Math.ran
   state.damageEffectRemaining = 0;
   state.ascendingStreak = 0;
   state.lastHealing = 0;
+  state.recoveryEffectRemaining = 0;
   state.cameraTransitionRemaining = 0;
   state.cameraTransitionProgress = 0;
   return true;

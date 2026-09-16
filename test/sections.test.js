@@ -46,7 +46,7 @@ test("두 구간을 반복하면 마지막 절대 높이와 발밑 나무토막�
   assert.equal(state.phase, "camera-transition");
   assert.equal(state.baseHeight, 10);
   assert.equal(state.currentHeight, 10);
-  assert.equal(state.health, 95);
+  assert.equal(state.health, 1108);
   assert.equal(state.walkedSlots, 10);
   assert.equal(state.completedSections, 1);
   assert.equal(state.rockSpeedMultiplier, 1.05);
@@ -59,7 +59,7 @@ test("두 구간을 반복하면 마지막 절대 높이와 발밑 나무토막�
   assert.equal(state.characterSlot, -1);
   assert.equal(state.baseHeight, 10);
   assert.equal(state.currentHeight, 10);
-  assert.equal(state.health, 95);
+  assert.equal(state.health, 1108);
   assert.equal(state.walkedSlots, 10);
   assert.equal(state.startingLogHeight, 10);
 
@@ -74,7 +74,7 @@ test("두 구간을 반복하면 마지막 절대 높이와 발밑 나무토막�
   assert.equal(state.phase, "camera-transition");
   assert.equal(state.baseHeight, 30);
   assert.equal(state.currentHeight, 30);
-  assert.equal(state.health, 95);
+  assert.equal(state.health, 2121);
   assert.equal(state.walkedSlots, 20);
   assert.equal(state.completedSections, 2);
   assert.equal(state.rockSpeedMultiplier, 1.1);

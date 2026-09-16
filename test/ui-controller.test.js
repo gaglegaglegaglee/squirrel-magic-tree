@@ -205,7 +205,7 @@ test("배치 단계에서는 시간 경과로 자동 배치되지 않고 빈칸 
   const harness = createUiHarness();
   const { controller, elements, scheduledFrames } = harness;
   elements.startButton.emit("click");
-  assert.equal(scheduledFrames.length, 0);
+  assert.equal(scheduledFrames.length, 1);
   assert.equal(controller.state.placementCount, 0);
   assert.equal(controller.state.phase, "placing");
   assert.notEqual(controller.state.currentRock, null);
@@ -333,7 +333,7 @@ test("첫 게임의 3단계 안내는 상태를 멈추고 완료 뒤 정확한 �
   assert.equal(elements.gameScreen.inert, false);
   assert.equal(markSeenCalls, 1);
   assert.equal(controller.state.currentRock.position, rockPosition);
-  assert.equal(scheduledFrames.length, 0);
+  assert.equal(scheduledFrames.length, 1);
   assert.match(elements.gameStatus.textContent, /저장하지 못했습니다/);
 
   elements.gameHelpButton.emit("click");
@@ -342,7 +342,7 @@ test("첫 게임의 3단계 안내는 상태를 멈추고 완료 뒤 정확한 �
   for (let step = 0; step < TUTORIAL_STEPS.length; step += 1) {
     elements.tutorialNextButton.emit("click");
   }
-  assert.equal(scheduledFrames.length, 0);
+  assert.equal(scheduledFrames.length, 2);
   controller.destroy();
 });
 
@@ -386,11 +386,11 @@ test("도움말·화면 방향·탭 숨김 pause reason이 모두 해제된 뒤�
   controller.updateViewport(800, 400);
   assert.deepEqual([...controller.getPauseReasons()], ["visibility"]);
   assert.equal(elements.orientationOverlay.hidden, true);
-  assert.equal(scheduledFrames.length, 0);
+  assert.equal(scheduledFrames.length, 1);
 
   controller.setDocumentHidden(false);
   assert.equal(controller.getPauseReasons().size, 0);
-  assert.equal(scheduledFrames.length, 0);
+  assert.equal(scheduledFrames.length, 2);
   assert.equal(controller.state.currentRock.position, startingPosition);
   controller.destroy();
 });
@@ -515,8 +515,8 @@ test("피해 없이 생존하면 UI가 10번째 나무토막 완주와 최종 �
   assert.equal(controller.state.phase, "camera-transition");
   assert.equal(controller.state.characterSlot, 9);
   assert.equal(controller.state.walkedSlots, 10);
-  assert.equal(controller.state.health, 100);
-  assert.equal(elements.healthValue.textContent, "100개");
+  assert.equal(controller.state.health, 1113);
+  assert.equal(elements.healthValue.textContent, "1113개");
   assert.equal(elements.heightValue.textContent, "25");
   assert.match(elements.gameStatus.textContent, /구간 완주/);
 
@@ -683,6 +683,12 @@ test("브라우저 진입 모듈은 시작 click부터 실제 Canvas 10칸 렌�
   controller.state.damageEffectRemaining = 0.45;
   controller.render();
   assert.equal(drawnTexts.includes("도토리 -49"), true);
+  controller.state.lastDamage = 0;
+  controller.state.damageEffectRemaining = 0;
+  controller.state.lastHealing = 3;
+  controller.state.recoveryEffectRemaining = 0.7;
+  controller.render();
+  assert.equal(drawnTexts.includes("도토리 +3"), true);
   controller.state.phase = "camera-transition";
   controller.state.baseHeight = 50;
   controller.state.cameraTransitionProgress = 0.5;

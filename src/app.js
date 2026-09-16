@@ -235,10 +235,31 @@ function drawSlots(state) {
     context.textAlign = "center";
     context.fillText(String(index + 1), x + SLOT_WIDTH / 2, BOARD.y + 43);
 
-    if (height !== null) {
+    if (height !== null && state.placementAnimation?.slotIndex !== index) {
       drawRock(x + SLOT_WIDTH / 2, BOARD.y + BOARD.height, height, true);
     }
   }
+}
+
+function drawPlacementAnimation(state) {
+  const animation = state.placementAnimation;
+  if (!animation) {
+    return;
+  }
+
+  const rawProgress = 1 - animation.remaining / 0.38;
+  const progress = rawProgress * rawProgress * (3 - 2 * rawProgress);
+  const targetX = slotX(animation.slotIndex) + SLOT_WIDTH / 2;
+  const targetBottom = BOARD.y + BOARD.height;
+  const x = LOGICAL_WIDTH / 2 + (targetX - LOGICAL_WIDTH / 2) * progress;
+  const bottom = 400 + (targetBottom - 400) * progress;
+  const wobble = Math.sin(progress * Math.PI * 3) * (1 - progress) * 0.08;
+  context.save();
+  context.translate(x, bottom);
+  context.rotate(wobble);
+  context.translate(-x, -bottom);
+  drawRock(x, bottom, animation.height, progress > 0.75);
+  context.restore();
 }
 
 function drawStartingLog(state) {
@@ -350,6 +371,45 @@ function drawAcornBurst(state) {
   context.restore();
 }
 
+function drawAcornGain(state) {
+  if (state.recoveryEffectRemaining <= 0 || state.lastHealing <= 0) {
+    return;
+  }
+
+  const origin = characterFootPosition(state);
+  const elapsed = 0.7 - state.recoveryEffectRemaining;
+  const rise = 45 + elapsed * 85;
+  context.save();
+  for (let index = 0; index < 3; index += 1) {
+    const angle = elapsed * 3 + index * (Math.PI * 2 / 3);
+    const radius = 38 - elapsed * 24;
+    const x = origin.x + Math.cos(angle) * radius;
+    const y = origin.y - 58 - Math.sin(angle) * 13 - elapsed * 35;
+    context.save();
+    context.translate(x, y);
+    context.rotate(angle * 0.35);
+    context.fillStyle = "#d99552";
+    context.strokeStyle = "#6f4932";
+    context.lineWidth = 3;
+    context.beginPath();
+    context.ellipse(0, 4, 8, 11, 0, 0, Math.PI * 2);
+    context.fill();
+    context.stroke();
+    context.fillStyle = "#6f4932";
+    context.fillRect(-6, -8, 12, 5);
+    context.restore();
+  }
+  context.fillStyle = "#fff7bc";
+  context.strokeStyle = "#557567";
+  context.lineWidth = 8;
+  context.font = "900 48px system-ui, sans-serif";
+  context.textAlign = "center";
+  context.textBaseline = "middle";
+  context.strokeText(`도토리 +${state.lastHealing}`, origin.x, origin.y - rise);
+  context.fillText(`도토리 +${state.lastHealing}`, origin.x, origin.y - rise);
+  context.restore();
+}
+
 function drawRock(centerX, bottomY, height, isFixed) {
   const visualHeight = rockVisualHeight(height);
   const logWidth = Math.min(SLOT_WIDTH - 16, 88 + height * 0.18);
@@ -405,7 +465,21 @@ function drawCurrentRock(state) {
 
   const centerX = LOGICAL_WIDTH / 2;
   const bob = reduceDecorativeMotion ? 0 : Math.sin(performanceRef.now() / 210) * 8;
-  drawRock(centerX, 400 + bob, state.currentRock.height, false);
+  const spawnProgress = state.currentRock.spawnProgress ?? 1;
+  const eased = 1 - (1 - spawnProgress) ** 3;
+  if ((state.currentRock.spawnDelay ?? 0) <= 0) {
+    const bottom = 245 + eased * 155 + bob * eased;
+    const scale = 0.28 + eased * 0.72;
+    const spin = (1 - eased) * Math.PI * 2.6;
+    context.save();
+    context.globalAlpha = 0.3 + eased * 0.7;
+    context.translate(centerX, bottom);
+    context.rotate(spin);
+    context.scale(scale, scale);
+    context.translate(-centerX, -bottom);
+    drawRock(centerX, bottom, state.currentRock.height, false);
+    context.restore();
+  }
 
   context.fillStyle = "#3b2027d9";
   context.strokeStyle = "#f7cf71";
@@ -432,9 +506,11 @@ function render(state) {
   }
   drawStartingLog(state);
   drawSlots(state);
+  drawPlacementAnimation(state);
   drawDangerMarkers(state);
   drawSquirrel(state);
   drawAcornBurst(state);
+  drawAcornGain(state);
   drawCurrentRock(state);
   context.restore();
   drawCameraTransition(state);

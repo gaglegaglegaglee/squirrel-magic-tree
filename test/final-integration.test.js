@@ -99,7 +99,7 @@ test("시작→첫 안내→첫 구간→다음 구간→사망→기록→재�
   }
   assert.equal(elements.tutorialOverlay.hidden, true);
   assert.equal(harness.tutorialSeen(), true);
-  assert.equal(scheduledFrames.length, 0);
+  assert.equal(scheduledFrames.length, 1);
 
   placeHeights(controller, elements, Array(10).fill(10));
   let frameIndex = 0;
@@ -116,6 +116,7 @@ test("시작→첫 안내→첫 구간→다음 구간→사망→기록→재�
   assert.equal(controller.state.baseHeight, 10);
   assert.equal(controller.state.walkedSlots, 10);
 
+  controller.state.health = 100;
   placeHeights(controller, elements, [50, 1, 50, 1, 50, 1, 50, 1, 50, 1]);
   for (; frameIndex < 250 && controller.state.phase !== "game-over"; frameIndex += 1) {
     now += 100;

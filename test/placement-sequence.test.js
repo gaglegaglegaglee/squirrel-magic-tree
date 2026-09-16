@@ -3,6 +3,9 @@ import assert from "node:assert/strict";
 
 import {
   SLOT_COUNT,
+  ROCK_ARRIVAL_SECONDS,
+  ROCK_PLACEMENT_SECONDS,
+  advancePlacementAnimations,
   advanceRock,
   autoPlaceCurrentRock,
   createInitialState,
@@ -11,6 +14,24 @@ import {
 } from "../src/game-state.js";
 
 const repeatedHeightRandom = () => 0.2;
+
+test("새 나무토막 등장과 선택 칸 배치 애니메이션이 시간에 따라 완료된다", () => {
+  const state = createInitialState();
+  startGame(state, repeatedHeightRandom);
+  assert.equal(state.currentRock.spawnProgress, 0);
+  advancePlacementAnimations(state, ROCK_ARRIVAL_SECONDS / 2);
+  assert.equal(state.currentRock.spawnProgress, 0.5);
+  advancePlacementAnimations(state, ROCK_ARRIVAL_SECONDS / 2);
+  assert.equal(state.currentRock.spawnProgress, 1);
+
+  state.currentRock.position = 0.15;
+  advanceRock(state, 0, repeatedHeightRandom);
+  assert.equal(placeCurrentRock(state, repeatedHeightRandom), true);
+  assert.equal(state.placementAnimation.slotIndex, 1);
+  advancePlacementAnimations(state, ROCK_PLACEMENT_SECONDS);
+  assert.equal(state.placementAnimation, null);
+  assert.equal(state.currentRock.spawnDelay, 0);
+});
 
 test("배치 직후 같은 높이도 가능한 새 바위가 오른쪽에서 출발한다", () => {
   const state = createInitialState();
