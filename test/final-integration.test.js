@@ -82,7 +82,7 @@ function integrationHarness() {
 function placeHeights(controller, elements, heights) {
   for (let slotIndex = 0; slotIndex < heights.length; slotIndex += 1) {
     controller.state.currentRock.height = heights[slotIndex];
-    elements.canvas.emit("pointerdown", { clientX: 179 + (slotIndex + 0.5) * 74.375, clientY: 300 });
+    elements.canvas.emit("pointerdown", { clientX: 118.75 + (slotIndex + 0.5) * 42.5, clientY: 300 });
   }
 }
 
@@ -101,39 +101,39 @@ test("시작→첫 안내→첫 구간→다음 구간→사망→기록→재�
   assert.equal(harness.tutorialSeen(), true);
   assert.equal(scheduledFrames.length, 1);
 
-  placeHeights(controller, elements, Array(10).fill(10));
+  placeHeights(controller, elements, Array(20).fill(10));
   let frameIndex = 0;
   let now = 0;
-  for (; frameIndex < 120 && controller.state.completedSections < 1; frameIndex += 1) {
+  for (; frameIndex < 250 && controller.state.completedSections < 1; frameIndex += 1) {
     now += 100;
     scheduledFrames[frameIndex](now);
   }
-  for (; frameIndex < 150 && controller.state.phase !== "placing"; frameIndex += 1) {
+  for (; frameIndex < 300 && controller.state.phase !== "placing"; frameIndex += 1) {
     now += 100;
     scheduledFrames[frameIndex](now);
   }
   assert.equal(controller.state.phase, "placing");
   assert.equal(controller.state.baseHeight, 10);
-  assert.equal(controller.state.walkedSlots, 10);
+  assert.equal(controller.state.walkedSlots, 20);
 
   controller.state.health = 100;
-  placeHeights(controller, elements, [50, 1, 50, 1, 50, 1, 50, 1, 50, 1]);
-  for (; frameIndex < 250 && controller.state.phase !== "game-over"; frameIndex += 1) {
+  placeHeights(controller, elements, Array.from({ length: 20 }, (_, index) => index % 2 === 0 ? 50 : 1));
+  for (; frameIndex < 450 && controller.state.phase !== "game-over"; frameIndex += 1) {
     now += 100;
     scheduledFrames[frameIndex](now);
   }
   assert.equal(controller.state.phase, "game-over");
   assert.equal(controller.state.currentHeight, 11);
-  assert.equal(controller.state.walkedSlots, 16);
+  assert.equal(controller.state.walkedSlots, 27);
   assert.equal(elements.resultOverlay.hidden, false);
-  assert.deepEqual(savedRecords, [{ height: 11, walkedSlots: 16 }]);
+  assert.deepEqual(savedRecords, [{ height: 11, walkedSlots: 27 }]);
 
   elements.restartButton.emit("click");
   assert.equal(controller.state.phase, "placing");
   assert.equal(controller.state.health, 100);
   assert.equal(controller.state.currentHeight, 0);
   assert.equal(controller.state.walkedSlots, 0);
-  assert.deepEqual(controller.getBestRecord(), { height: 11, walkedSlots: 16 });
+  assert.deepEqual(controller.getBestRecord(), { height: 11, walkedSlots: 27 });
   assert.equal(elements.tutorialOverlay.hidden, true);
   controller.destroy();
 });

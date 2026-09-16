@@ -11,7 +11,7 @@ import {
   calculateDropDamage,
   createInitialState,
   findDangerousDrops,
-  placeCurrentRock,
+  placeCurrentRockAtSlot,
   startGame,
 } from "../src/game-state.js";
 
@@ -30,9 +30,7 @@ function completeBoard(heights) {
   startGame(state, random);
 
   for (let slotIndex = 0; slotIndex < SLOT_COUNT; slotIndex += 1) {
-    state.currentRock.position = (slotIndex + 0.51) / SLOT_COUNT;
-    advanceRock(state, 0, random);
-    assert.equal(placeCurrentRock(state, random), true);
+    assert.equal(placeCurrentRockAtSlot(state, slotIndex, random), true);
   }
   return state;
 }
@@ -89,16 +87,19 @@ test("같거나 높은 연속 흐름은 중간에 누적하지 않고 가장 큰
   landOnce(state);
   assert.equal(state.health, 71);
   landOnce(state);
-  assert.equal(state.health, 78);
-  assert.equal(state.lastHealing, 7);
-  assert.equal(state.maxAscendingStreak, 5);
+  assert.equal(state.health, 71);
+  assert.equal(state.lastHealing, 0);
+  for (let index = 10; index < SLOT_COUNT; index += 1) landOnce(state);
+  assert.equal(state.health, 8262);
+  assert.equal(state.lastHealing, 8191);
+  assert.equal(state.maxAscendingStreak, 13);
 
   const cappedState = completeBoard([10, 20, 30, 40, 40, 40, 40, 40, 40, 40]);
   cappedState.health = 99;
   startWalking(cappedState);
   for (let index = 0; index < SLOT_COUNT; index += 1) landOnce(cappedState);
-  assert.equal(cappedState.health, 610);
-  assert.equal(cappedState.lastHealing, 511);
+  assert.equal(cappedState.health, 524386);
+  assert.equal(cappedState.lastHealing, 524287);
 });
 
 test("위험 표시는 인접 내리막만 왼쪽 순서로 만들고 기준면→첫 바위는 제외한다", () => {
@@ -113,7 +114,7 @@ test("위험 표시는 인접 내리막만 왼쪽 순서로 만들고 기준면�
   assert.equal(findDangerousDrops([50, 50, 50]).length, 0);
 });
 
-test("짧은 길 확인 시간이 끝난 뒤 슬롯 0부터 9까지 순서대로 한 번씩 착지해 완주한다", () => {
+test("짧은 길 확인 시간이 끝난 뒤 슬롯 0부터 19까지 순서대로 한 번씩 착지해 완주한다", () => {
   const state = completeBoard([5, 10, 15, 20, 25, 30, 35, 40, 45, 50]);
   const originalBoard = [...state.slots];
   advanceWalk(state, PATH_REVIEW_SECONDS / 2);
@@ -127,10 +128,10 @@ test("짧은 길 확인 시간이 끝난 뒤 슬롯 0부터 9까지 순서대로
     visitedSlots.push(state.characterSlot);
   }
 
-  assert.deepEqual(visitedSlots, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+  assert.deepEqual(visitedSlots, Array.from({ length: 20 }, (_, index) => index));
   assert.equal(state.phase, "camera-transition");
-  assert.equal(state.walkedSlots, 10);
-  assert.equal(state.health, 611);
+  assert.equal(state.walkedSlots, 20);
+  assert.equal(state.health, 524387);
   assert.equal(state.currentHeight, 50);
   assert.equal(state.baseHeight, 50);
   assert.equal(state.completedSections, 1);

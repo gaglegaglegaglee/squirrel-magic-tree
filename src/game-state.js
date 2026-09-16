@@ -1,4 +1,6 @@
-export const SLOT_COUNT = 10;
+export const SLOT_COUNT = 20;
+export const BOARD_X = 190;
+export const BOARD_WIDTH = 1360;
 export const STARTING_HEALTH = 100;
 export const STARTING_ACORNS = STARTING_HEALTH;
 export const STARTING_HEIGHT = 0;
@@ -74,12 +76,15 @@ export function bounceHeightForProgress(progress) {
   return Math.sin(safeProgress * Math.PI) * 42;
 }
 
-export function findDangerousDrops(slots) {
+export function findDangerousDrops(slots, direction = 1) {
   const drops = [];
-  for (let fromIndex = 0; fromIndex < slots.length - 1; fromIndex += 1) {
-    const damage = calculateDropDamage(slots[fromIndex], slots[fromIndex + 1]);
+  const start = direction === -1 ? slots.length - 1 : 0;
+  const end = direction === -1 ? 0 : slots.length - 1;
+  for (let fromIndex = start; fromIndex !== end; fromIndex += direction) {
+    const toIndex = fromIndex + direction;
+    const damage = calculateDropDamage(slots[fromIndex], slots[toIndex]);
     if (damage > 0) {
-      drops.push({ fromIndex, toIndex: fromIndex + 1, damage });
+      drops.push({ fromIndex, toIndex, damage });
     }
   }
   return drops;
@@ -115,6 +120,7 @@ export function createInitialState() {
     cameraTransitionRemaining: 0,
     cameraTransitionProgress: 0,
     startingLogHeight: 20,
+    sectionDirection: 1,
   };
 }
 
@@ -151,6 +157,7 @@ export function startGame(state, random = Math.random) {
   state.cameraTransitionRemaining = 0;
   state.cameraTransitionProgress = 0;
   state.startingLogHeight = 20;
+  state.sectionDirection = 1;
   return true;
 }
 
@@ -177,7 +184,7 @@ function finishPlacement(state, slotIndex, method, random) {
   if (state.placementCount === SLOT_COUNT) {
     state.phase = "path-review";
     state.currentRock = null;
-    state.dangerousDrops = findDangerousDrops(state.slots);
+    state.dangerousDrops = findDangerousDrops(state.slots, state.sectionDirection);
     state.pathReviewRemaining = PATH_REVIEW_SECONDS;
     state.characterSlot = -1;
     state.walkProgress = 0;
@@ -280,8 +287,11 @@ export function placeCurrentRockAtSlot(state, slotIndex, random = Math.random) {
 }
 
 function landOnNextRock(state) {
-  const nextSlot = state.characterSlot + 1;
-  if (nextSlot >= SLOT_COUNT) {
+  const direction = state.sectionDirection;
+  const nextSlot = state.characterSlot < 0
+    ? (direction === 1 ? 0 : SLOT_COUNT - 1)
+    : state.characterSlot + direction;
+  if (nextSlot < 0 || nextSlot >= SLOT_COUNT) {
     return false;
   }
 
@@ -293,8 +303,8 @@ function landOnNextRock(state) {
     : calculateAscendingRecovery(previousHeight, nextHeight, state.ascendingStreak);
   const safeFlowContinues =
     ascent.streak > 0 &&
-    nextSlot < SLOT_COUNT - 1 &&
-    state.slots[nextSlot + 1] >= nextHeight;
+    nextSlot !== (direction === 1 ? SLOT_COUNT - 1 : 0) &&
+    state.slots[nextSlot + direction] >= nextHeight;
   state.health = Math.max(0, state.health - damage);
   state.ascendingStreak = ascent.streak;
   if (ascent.streak > state.maxAscendingStreak) {
@@ -312,7 +322,7 @@ function landOnNextRock(state) {
 
   if (state.health === 0) {
     state.phase = "game-over";
-  } else if (nextSlot === SLOT_COUNT - 1) {
+  } else if (nextSlot === (direction === 1 ? SLOT_COUNT - 1 : 0)) {
     state.baseHeight = state.currentHeight;
     state.completedSections += 1;
     state.rockSpeedMultiplier = speedMultiplierForSections(state.completedSections);
@@ -373,6 +383,10 @@ export function advanceCameraTransition(state, elapsedSeconds, random = Math.ran
   }
 
   state.startingLogHeight = state.slots[SLOT_COUNT - 1];
+  if (state.sectionDirection === -1) {
+    state.startingLogHeight = state.slots[0];
+  }
+  state.sectionDirection *= -1;
   state.phase = "placing";
   state.slots = Array(SLOT_COUNT).fill(null);
   state.currentRock = createMovingRock(random);

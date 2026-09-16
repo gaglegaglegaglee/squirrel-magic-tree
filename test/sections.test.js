@@ -14,6 +14,7 @@ import {
   cameraOffsetForProgress,
   createInitialState,
   placeCurrentRock,
+  placeCurrentRockAtSlot,
   speedMultiplierForSections,
   startGame,
 } from "../src/game-state.js";
@@ -23,9 +24,7 @@ const fixedRandom = () => 0.4;
 function placeBoard(state, heights) {
   for (let slotIndex = 0; slotIndex < SLOT_COUNT; slotIndex += 1) {
     state.currentRock.height = heights[slotIndex];
-    state.currentRock.position = (slotIndex + 0.51) / SLOT_COUNT;
-    advanceRock(state, 0, fixedRandom);
-    assert.equal(placeCurrentRock(state, fixedRandom), true);
+    assert.equal(placeCurrentRockAtSlot(state, slotIndex, fixedRandom), true);
   }
 }
 
@@ -46,8 +45,8 @@ test("두 구간을 반복하면 마지막 절대 높이와 발밑 나무토막�
   assert.equal(state.phase, "camera-transition");
   assert.equal(state.baseHeight, 10);
   assert.equal(state.currentHeight, 10);
-  assert.equal(state.health, 606);
-  assert.equal(state.walkedSlots, 10);
+  assert.equal(state.health, 524382);
+  assert.equal(state.walkedSlots, 20);
   assert.equal(state.completedSections, 1);
   assert.equal(state.rockSpeedMultiplier, 1.05);
 
@@ -59,23 +58,26 @@ test("두 구간을 반복하면 마지막 절대 높이와 발밑 나무토막�
   assert.equal(state.characterSlot, -1);
   assert.equal(state.baseHeight, 10);
   assert.equal(state.currentHeight, 10);
-  assert.equal(state.health, 606);
-  assert.equal(state.walkedSlots, 10);
+  assert.equal(state.health, 524382);
+  assert.equal(state.walkedSlots, 20);
   assert.equal(state.startingLogHeight, 10);
+  assert.equal(state.sectionDirection, -1);
 
   placeBoard(state, Array(SLOT_COUNT).fill(20));
   advanceWalk(state, PATH_REVIEW_SECONDS);
   advanceWalk(state, WALK_STEP_SECONDS);
   assert.equal(state.currentHeight, 30);
+  assert.equal(state.characterSlot, SLOT_COUNT - 1);
   for (let index = 1; index < SLOT_COUNT; index += 1) {
     advanceWalk(state, WALK_STEP_SECONDS);
   }
 
   assert.equal(state.phase, "camera-transition");
+  assert.equal(state.characterSlot, 0);
   assert.equal(state.baseHeight, 30);
   assert.equal(state.currentHeight, 30);
-  assert.equal(state.health, 1117);
-  assert.equal(state.walkedSlots, 20);
+  assert.equal(state.health, 1048669);
+  assert.equal(state.walkedSlots, 40);
   assert.equal(state.completedSections, 2);
   assert.equal(state.rockSpeedMultiplier, 1.1);
   assert.equal(Number.isInteger(state.baseHeight), true);

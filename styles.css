@@ -326,18 +326,19 @@ canvas {
 
 .game-status {
   position: absolute;
-  right: 50%;
-  bottom: 2.5%;
-  max-width: calc(100% - 28px);
+  top: 2.5%;
+  right: 2.5%;
+  bottom: auto;
+  max-width: min(48%, 580px);
   margin: 0;
   padding: 8px 18px;
   border: 1px solid #ffffffcc;
   border-radius: 999px;
   color: #4c6259;
   text-align: center;
-  white-space: nowrap;
+  white-space: normal;
   background: #f8fffbe8;
-  transform: translateX(50%);
+  transform: none;
   font-size: clamp(0.68rem, 1.9vw, 0.95rem);
   pointer-events: none;
 }

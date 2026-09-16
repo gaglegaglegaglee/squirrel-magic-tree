@@ -2,8 +2,11 @@ import {
   advanceCameraTransition,
   advancePlacementAnimations,
   advanceWalk,
+  BOARD_WIDTH,
+  BOARD_X,
   createInitialState,
   placeCurrentRockAtSlot,
+  SLOT_COUNT,
   startGame,
 } from "./game-state.js";
 import {
@@ -39,12 +42,15 @@ export function slotIndexFromCanvasX(canvas, clientX) {
   }
 
   const logicalX = ((clientX - rect.left) / rect.width) * 1600;
-  const boardX = 286;
-  const boardWidth = 1190;
+  const boardX = BOARD_X;
+  const boardWidth = BOARD_WIDTH;
   if (logicalX < boardX || logicalX > boardX + boardWidth) {
     return null;
   }
-  return Math.min(9, Math.floor(((logicalX - boardX) / boardWidth) * 10));
+  return Math.min(
+    SLOT_COUNT - 1,
+    Math.floor(((logicalX - boardX) / boardWidth) * SLOT_COUNT),
+  );
 }
 
 export function createGameController({
@@ -191,7 +197,7 @@ export function createGameController({
       return;
     }
 
-    gameStatus.textContent = `${placement.height} 높이 나무토막 배치 · ${state.placementCount}/10`;
+    gameStatus.textContent = `${placement.height} 높이 나무토막 배치 · ${state.placementCount}/${SLOT_COUNT}`;
   }
 
   function render() {
@@ -319,7 +325,7 @@ export function createGameController({
     } else if (state.lastHealing > 0) {
       gameStatus.textContent = `안전한 연속 이동 ${state.ascendingStreak}회 완성 · 도토리 +${state.lastHealing}개`;
     } else {
-      gameStatus.textContent = `${state.characterSlot + 1}/10 나무토막에 안전하게 착지했습니다.`;
+      gameStatus.textContent = `${state.characterSlot + 1}/${SLOT_COUNT} 나무토막에 안전하게 착지했습니다.`;
     }
   }
 
@@ -346,7 +352,8 @@ export function createGameController({
     if (previousPhase === "camera-transition" && state.phase === "placing") {
       updateHud();
       canvas.style.cursor = "pointer";
-      gameStatus.textContent = `${state.completedSections + 1}번째 구간 · 나무토막을 놓을 빈칸을 선택하세요.`;
+      const directionLabel = state.sectionDirection === 1 ? "왼쪽 → 오른쪽" : "오른쪽 → 왼쪽";
+      gameStatus.textContent = `${state.completedSections + 1}번째 구간 · ${directionLabel} · 빈칸을 선택하세요.`;
     }
     showGameOverResult();
     render();

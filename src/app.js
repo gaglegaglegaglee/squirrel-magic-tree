@@ -1,12 +1,18 @@
 import { createGameController } from "./game-controller.js";
-import { SLOT_COUNT, bounceHeightForProgress, cameraOffsetForProgress } from "./game-state.js";
+import {
+  BOARD_WIDTH,
+  BOARD_X,
+  SLOT_COUNT,
+  bounceHeightForProgress,
+  cameraOffsetForProgress,
+} from "./game-state.js";
 import { createBestRecordStore } from "./record-store.js";
 import { createTutorialStore } from "./tutorial-store.js";
 
 const LOGICAL_WIDTH = 1600;
 const LOGICAL_HEIGHT = 900;
-const BOARD = Object.freeze({ x: 286, y: 650, width: 1190, height: 128 });
-const SLOT_GAP = 10;
+const BOARD = Object.freeze({ x: BOARD_X, y: 650, width: BOARD_WIDTH, height: 128 });
+const SLOT_GAP = 6;
 const SLOT_WIDTH = (BOARD.width - SLOT_GAP * (SLOT_COUNT - 1)) / SLOT_COUNT;
 
 export function bootstrapGame(
@@ -141,13 +147,15 @@ function drawStreakRecordEffect(state) {
 }
 
 function characterFootPosition(state) {
-  const start = { x: 132, y: 777 };
+  const start = { x: state.sectionDirection === 1 ? 110 : 1490, y: 777 };
   if (state.characterSlot < 0 && state.phase !== "walking") {
     return start;
   }
 
   const fromSlot = state.characterSlot;
-  const toSlot = Math.min(SLOT_COUNT - 1, fromSlot + 1);
+  const toSlot = fromSlot < 0
+    ? (state.sectionDirection === 1 ? 0 : SLOT_COUNT - 1)
+    : Math.max(0, Math.min(SLOT_COUNT - 1, fromSlot + state.sectionDirection));
   const from = fromSlot < 0
     ? start
     : {
@@ -170,7 +178,8 @@ function characterFootPosition(state) {
 }
 
 function cameraOffsetToAlignCharacter(state) {
-  const start = { x: 132, y: 777 };
+  const nextDirection = -state.sectionDirection;
+  const start = { x: nextDirection === 1 ? 110 : 1490, y: 777 };
   const character = characterFootPosition(state);
   return cameraOffsetForProgress(
     state.cameraTransitionProgress,
@@ -187,6 +196,10 @@ function drawSquirrel(state) {
   const centerY = ground - 28 - bounce;
 
   context.save();
+  if (state.sectionDirection === -1) {
+    context.translate(x * 2, 0);
+    context.scale(-1, 1);
+  }
   context.fillStyle = "rgba(42, 23, 32, 0.28)";
   context.beginPath();
   context.ellipse(x, ground + 3, 28 - bounce * 0.16, 7, 0, 0, Math.PI * 2);
@@ -262,7 +275,7 @@ function drawSlots(state) {
     context.restore();
 
     context.fillStyle = isHighlighted ? "#fff6c7" : "#e7ba71";
-    context.font = "800 27px system-ui, sans-serif";
+    context.font = "800 20px system-ui, sans-serif";
     context.textAlign = "center";
     context.fillText(String(index + 1), x + SLOT_WIDTH / 2, BOARD.y + 43);
 
@@ -299,7 +312,8 @@ function drawStartingLog(state) {
   }
 
   const height = state.startingLogHeight ?? 20;
-  drawRock(132, 777 + rockVisualHeight(height), height, true);
+  const startX = state.sectionDirection === 1 ? 110 : 1490;
+  drawRock(startX, 777 + rockVisualHeight(height), height, true);
 }
 
 function rockVisualHeight(height) {
@@ -481,7 +495,7 @@ function drawRock(centerX, bottomY, height, isFixed) {
   context.fillStyle = "#fff8d4";
   context.strokeStyle = "#2b1820";
   context.lineWidth = 8;
-  context.font = "900 46px system-ui, sans-serif";
+  context.font = `900 ${Math.min(46, SLOT_WIDTH * 0.48)}px system-ui, sans-serif`;
   context.textAlign = "center";
   context.textBaseline = "middle";
   const textY = bottomY - visualHeight * 0.5;

@@ -24,7 +24,7 @@ test("새 나무토막 등장과 선택 칸 배치 애니메이션이 시간에 
   advancePlacementAnimations(state, ROCK_ARRIVAL_SECONDS / 2);
   assert.equal(state.currentRock.spawnProgress, 1);
 
-  state.currentRock.position = 0.15;
+  state.currentRock.position = 0.075;
   advanceRock(state, 0, repeatedHeightRandom);
   assert.equal(placeCurrentRock(state, repeatedHeightRandom), true);
   assert.equal(state.placementAnimation.slotIndex, 1);
@@ -37,7 +37,7 @@ test("배치 직후 같은 높이도 가능한 새 바위가 오른쪽에서 출
   const state = createInitialState();
   startGame(state, repeatedHeightRandom);
   const firstHeight = state.currentRock.height;
-  state.currentRock.position = 0.85;
+  state.currentRock.position = 0.425;
   advanceRock(state, 0, repeatedHeightRandom);
 
   assert.equal(placeCurrentRock(state, repeatedHeightRandom), true);
@@ -51,13 +51,13 @@ test("배치 직후 같은 높이도 가능한 새 바위가 오른쪽에서 출
 test("채워진 칸은 강조·배치하지 않고 현재 바위는 다음 빈칸으로 계속 이동한다", () => {
   const state = createInitialState();
   startGame(state, repeatedHeightRandom);
-  state.currentRock.position = 0.55;
+  state.currentRock.position = 0.275;
   advanceRock(state, 0, repeatedHeightRandom);
   placeCurrentRock(state, repeatedHeightRandom);
   const fixedHeight = state.slots[5];
   const movingHeight = state.currentRock.height;
 
-  state.currentRock.position = 0.56;
+  state.currentRock.position = 0.28;
   advanceRock(state, 0, repeatedHeightRandom);
   assert.equal(state.highlightedSlot, null);
   assert.equal(placeCurrentRock(state, repeatedHeightRandom), false);
@@ -76,22 +76,23 @@ test("채워진 칸은 강조·배치하지 않고 현재 바위는 다음 빈�
 test("좌단에 도착한 바위는 남아 있는 가장 왼쪽 칸에 자동 배치된다", () => {
   const state = createInitialState();
   startGame(state, repeatedHeightRandom);
-  state.currentRock.position = 0.051;
+  state.currentRock.position = 0.075;
   advanceRock(state, 0, repeatedHeightRandom);
   placeCurrentRock(state, repeatedHeightRandom);
-  const firstFixedHeight = state.slots[0];
+  const firstFixedHeight = state.slots[1];
 
   state.currentRock.position = 0.05;
   assert.equal(advanceRock(state, 0, repeatedHeightRandom), true);
   assert.equal(state.placementCount, 2);
   assert.equal(state.lastPlacement.method, "automatic");
-  assert.equal(state.lastPlacement.slotIndex, 1);
-  assert.equal(state.slots[0], firstFixedHeight);
+  assert.equal(state.lastPlacement.slotIndex, 0);
+  assert.equal(state.slots[1], firstFixedHeight);
+  assert.notEqual(state.slots[0], null);
   assert.notEqual(state.slots[1], null);
   assert.notEqual(state.currentRock, null);
 });
 
-test("수동·자동 배치를 섞어도 정확히 10개에서 생성과 입력이 종료된다", () => {
+test("수동·자동 배치를 섞어도 정확히 20개에서 생성과 입력이 종료된다", () => {
   const state = createInitialState();
   startGame(state, repeatedHeightRandom);
 
