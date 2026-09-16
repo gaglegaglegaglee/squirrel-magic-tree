@@ -162,7 +162,7 @@ function createUiHarness(random = () => 0.5, options = {}) {
 }
 
 function clickSlot(elements, slotIndex) {
-  const boardLeft = 10 + (180 / 1600) * 800;
+  const boardLeft = 10 + (95 / 1600) * 800;
   const slotWidth = (1410 / 1600) * 800 / 20;
   elements.canvas.emit("pointerdown", {
     clientX: boardLeft + (slotIndex + 0.5) * slotWidth,
@@ -557,7 +557,7 @@ test("Canvas CSS는 얕은 가로 화면에서도 폭과 높이를 함께 제한
   assert.match(canvasRule, /max-height:\s*var\(--canvas-height-budget\)/);
   assert.match(canvasRule, /aspect-ratio:\s*16\s*\/\s*9/);
   assert.match(canvasRule, /margin-inline:\s*auto/);
-  assert.match(css, /--canvas-height-budget:\s*calc\(100dvh\s*-\s*64px\)/);
+  assert.match(css, /--canvas-height-budget:\s*calc\(100dvh\s*-\s*88px\)/);
   assert.match(html, /<canvas[\s\S]*?width="1600"[\s\S]*?height="900"/);
 });
 
@@ -672,11 +672,11 @@ test("브라우저 진입 모듈은 시작 click부터 실제 Canvas 20칸 렌�
   assert.equal(controller.state.placementCount, 1);
   assert.equal(controller.state.slots.filter((slot) => slot !== null).length, 1);
 
-  const remainingSlots = Array.from({ length: 20 }, (_, index) => index).filter((index) => index !== 8);
+  const remainingSlots = Array.from({ length: 20 }, (_, index) => index).filter((index) => index !== 10);
   for (const slotIndex of remainingSlots) {
     controller.state.currentRock.height = slotIndex === 0 ? 50 : slotIndex === 1 ? 1 : 10;
     canvas.emit("pointerdown", {
-      clientX: 180 + (slotIndex + 0.5) * 70.5,
+      clientX: 95 + (slotIndex + 0.5) * 70.5,
       clientY: 450,
     });
   }

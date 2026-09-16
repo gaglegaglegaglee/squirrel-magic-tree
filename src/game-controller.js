@@ -173,6 +173,8 @@ export function createGameController({
         { duration: 620, easing: "ease-out" },
       );
     }
+    gameStatus.classList?.toggle("game-status-left", state.sectionDirection === 1);
+    gameStatus.classList?.toggle("game-status-right", state.sectionDirection === -1);
   }
 
   function animationIsActive() {

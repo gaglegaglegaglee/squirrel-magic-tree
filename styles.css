@@ -234,7 +234,9 @@ h1 {
 .hud {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
+  grid-template-rows: auto auto;
   align-items: center;
+  gap: 5px 12px;
   min-height: 76px;
   padding: 10px clamp(14px, 3vw, 36px);
   border-bottom: 2px solid #a8cdbb;
@@ -304,7 +306,7 @@ h1 {
 }
 
 .canvas-frame {
-  --canvas-height-budget: calc(100dvh - 130px);
+  --canvas-height-budget: calc(100dvh - 155px);
   position: relative;
   background: #cce8e0;
 }
@@ -322,22 +324,29 @@ canvas {
 }
 
 .game-status {
-  position: absolute;
-  top: 2.5%;
-  right: 2.5%;
-  bottom: auto;
-  max-width: min(48%, 580px);
+  grid-row: 2;
+  grid-column: 1 / -1;
+  max-width: min(72%, 760px);
   margin: 0;
-  padding: 8px 18px;
+  padding: 5px 14px;
   border: 1px solid #ffffffcc;
   border-radius: 999px;
   color: #4c6259;
-  text-align: center;
   white-space: normal;
   background: #f8fffbe8;
   transform: none;
   font-size: clamp(0.68rem, 1.9vw, 0.95rem);
   pointer-events: none;
+}
+
+.game-status-left {
+  justify-self: start;
+  text-align: left;
+}
+
+.game-status-right {
+  justify-self: end;
+  text-align: right;
 }
 
 .result-overlay {
@@ -532,7 +541,7 @@ canvas {
   }
 
   .canvas-frame {
-    --canvas-height-budget: calc(100dvh - 64px);
+    --canvas-height-budget: calc(100dvh - 88px);
   }
 }
 

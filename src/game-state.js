@@ -1,10 +1,9 @@
 export const SLOT_COUNT = 20;
-export const BOARD_X = 180;
-export const BOARD_REVERSE_X = 10;
+export const BOARD_X = 95;
 export const BOARD_WIDTH = 1410;
 
-export function boardXForDirection(direction = 1) {
-  return direction === -1 ? BOARD_REVERSE_X : BOARD_X;
+export function boardXForDirection() {
+  return BOARD_X;
 }
 export const STARTING_HEALTH = 100;
 export const STARTING_ACORNS = STARTING_HEALTH;

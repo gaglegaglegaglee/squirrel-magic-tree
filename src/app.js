@@ -14,6 +14,12 @@ const LOGICAL_HEIGHT = 900;
 const BOARD = Object.freeze({ y: 650, width: BOARD_WIDTH, height: 128 });
 const SLOT_GAP = 6;
 const SLOT_WIDTH = (BOARD.width - SLOT_GAP * (SLOT_COUNT - 1)) / SLOT_COUNT;
+const START_X = 42;
+const REVERSE_START_X = LOGICAL_WIDTH - START_X;
+
+function startXForDirection(direction) {
+  return direction === 1 ? START_X : REVERSE_START_X;
+}
 
 export function bootstrapGame(
   documentRef = globalThis.document,
@@ -147,7 +153,7 @@ function drawStreakRecordEffect(state) {
 }
 
 function characterFootPosition(state) {
-  const start = { x: state.sectionDirection === 1 ? 110 : 1490, y: 777 };
+  const start = { x: startXForDirection(state.sectionDirection), y: 777 };
   if (state.characterSlot < 0 && state.phase !== "walking") {
     return start;
   }
@@ -179,7 +185,7 @@ function characterFootPosition(state) {
 
 function cameraOffsetToAlignCharacter(state) {
   const nextDirection = -state.sectionDirection;
-  const start = { x: nextDirection === 1 ? 110 : 1490, y: 777 };
+  const start = { x: startXForDirection(nextDirection), y: 777 };
   const character = characterFootPosition(state);
   return cameraOffsetForProgress(
     state.cameraTransitionProgress,
@@ -312,7 +318,7 @@ function drawStartingLog(state) {
   }
 
   const height = state.startingLogHeight ?? 20;
-  const startX = state.sectionDirection === 1 ? 110 : 1490;
+  const startX = startXForDirection(state.sectionDirection);
   drawRock(startX, 777 + rockVisualHeight(height), height, true);
 }
 
