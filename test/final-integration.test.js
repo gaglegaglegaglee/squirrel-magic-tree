@@ -31,7 +31,7 @@ class FakeElement {
 
 function integrationHarness() {
   const names = [
-    "startScreen", "gameScreen", "startButton", "canvas", "healthValue", "heightValue",
+    "startScreen", "gameScreen", "startButton", "canvas", "healthValue", "heightValue", "maxStreakValue",
     "gameStatus", "exitButton", "restartButton", "resetRecordButton", "resultOverlay",
     "resultHeight", "resultWalked", "resultBestHeight", "resultBestWalked", "startBestHeight",
     "startBestWalked", "startStorageWarning", "resultStorageWarning", "startHelpButton",

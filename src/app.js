@@ -20,6 +20,7 @@ const startButton = documentRef.querySelector("#start-button");
 const canvas = documentRef.querySelector("#game-canvas");
 const healthValue = documentRef.querySelector("#health-value");
 const heightValue = documentRef.querySelector("#height-value");
+const maxStreakValue = documentRef.querySelector("#max-streak-value");
 const gameStatus = documentRef.querySelector("#game-status");
 const exitButton = documentRef.querySelector("#exit-button");
 const restartButton = documentRef.querySelector("#restart-button");
@@ -58,13 +59,20 @@ function prepareContext() {
   context.imageSmoothingEnabled = true;
 }
 
-function drawBackground() {
+function drawBackground(state) {
   const sky = context.createLinearGradient(0, 0, 0, 650);
   sky.addColorStop(0, "#cdebf4");
   sky.addColorStop(0.54, "#f3dff0");
   sky.addColorStop(1, "#f9efc7");
   context.fillStyle = sky;
   context.fillRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
+
+  const backgroundLevel = state.completedSections +
+    (state.phase === "camera-transition" ? state.cameraTransitionProgress - 1 : 0);
+  const parallaxX = -backgroundLevel * 34;
+  const parallaxY = backgroundLevel * 72;
+  context.save();
+  context.translate(parallaxX, parallaxY);
 
   context.fillStyle = "#fff8cf";
   context.beginPath();
@@ -93,6 +101,8 @@ function drawBackground() {
   context.bezierCurveTo(1410, 700, 1510, 500, 1370, 340);
   context.stroke();
 
+  context.restore();
+
   context.fillStyle = "#cce5b2";
   context.beginPath();
   context.moveTo(0, 650);
@@ -107,6 +117,27 @@ function drawBackground() {
   context.fillRect(0, 778, LOGICAL_WIDTH, 122);
   context.fillStyle = "#6e9c7a";
   context.fillRect(0, 778, LOGICAL_WIDTH, 9);
+}
+
+function drawStreakRecordEffect(state) {
+  if (state.streakRecordEffectRemaining <= 0 || state.maxAscendingStreak <= 0) {
+    return;
+  }
+
+  const progress = 1 - state.streakRecordEffectRemaining / 0.9;
+  const alpha = Math.min(1, state.streakRecordEffectRemaining * 2.2);
+  context.save();
+  context.globalAlpha = alpha;
+  context.fillStyle = "#fff8c9";
+  context.strokeStyle = "#8a624d";
+  context.lineWidth = 9;
+  context.font = `900 ${54 + Math.sin(progress * Math.PI) * 12}px system-ui, sans-serif`;
+  context.textAlign = "center";
+  context.textBaseline = "middle";
+  const label = `최고 연속 상승 ${state.maxAscendingStreak}!`;
+  context.strokeText(label, LOGICAL_WIDTH / 2, 205 - progress * 28);
+  context.fillText(label, LOGICAL_WIDTH / 2, 205 - progress * 28);
+  context.restore();
 }
 
 function characterFootPosition(state) {
@@ -498,7 +529,7 @@ function drawCurrentRock(state) {
 function render(state) {
   prepareContext();
   context.clearRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
-  drawBackground();
+  drawBackground(state);
   context.save();
   if (state.phase === "camera-transition") {
     const cameraOffset = cameraOffsetToAlignCharacter(state);
@@ -513,6 +544,7 @@ function render(state) {
   drawAcornGain(state);
   drawCurrentRock(state);
   context.restore();
+  drawStreakRecordEffect(state);
   drawCameraTransition(state);
 }
 
@@ -524,6 +556,7 @@ const controller = createGameController({
     canvas,
     healthValue,
     heightValue,
+    maxStreakValue,
     gameStatus,
     exitButton,
     restartButton,

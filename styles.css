@@ -284,11 +284,26 @@ h1 {
 }
 
 .hud-title {
+  display: grid;
+  gap: 2px;
   color: #5c796d;
   font-family: Georgia, "Noto Serif KR", serif;
   font-size: clamp(1rem, 2.8vw, 1.65rem);
   font-weight: 900;
   white-space: nowrap;
+}
+
+.streak-record {
+  color: #8b7566;
+  font-family: "Noto Sans KR", system-ui, sans-serif;
+  font-size: clamp(0.65rem, 1.45vw, 0.8rem);
+  font-weight: 700;
+  text-align: center;
+}
+
+.streak-record strong {
+  color: #c27654;
+  font-size: 1em;
 }
 
 .canvas-frame {

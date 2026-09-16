@@ -41,6 +41,7 @@ function createUiHarness(random = () => 0.5, options = {}) {
   canvas.getBoundingClientRect = () => ({ left: 10, top: 20, right: 810, bottom: 470, width: 800, height: 450 });
   const healthValue = new FakeEventTarget();
   const heightValue = new FakeEventTarget();
+  const maxStreakValue = new FakeEventTarget();
   const gameStatus = new FakeEventTarget();
   const exitButton = new FakeEventTarget();
   const restartButton = new FakeEventTarget();
@@ -79,6 +80,7 @@ function createUiHarness(random = () => 0.5, options = {}) {
       canvas,
       healthValue,
       heightValue,
+      maxStreakValue,
       gameStatus,
       exitButton,
       restartButton,
@@ -131,6 +133,7 @@ function createUiHarness(random = () => 0.5, options = {}) {
       canvas,
       healthValue,
       heightValue,
+      maxStreakValue,
       gameStatus,
       exitButton,
       restartButton,
@@ -566,6 +569,7 @@ test("브라우저 진입 모듈은 시작 click부터 실제 Canvas 10칸 렌�
     "game-canvas",
     "health-value",
     "height-value",
+    "max-streak-value",
     "game-status",
     "exit-button",
     "restart-button",

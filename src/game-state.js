@@ -106,6 +106,8 @@ export function createInitialState() {
     lastDamage: 0,
     damageEffectRemaining: 0,
     ascendingStreak: 0,
+    maxAscendingStreak: 0,
+    streakRecordEffectRemaining: 0,
     lastHealing: 0,
     recoveryEffectRemaining: 0,
     completedSections: 0,
@@ -140,6 +142,8 @@ export function startGame(state, random = Math.random) {
   state.lastDamage = 0;
   state.damageEffectRemaining = 0;
   state.ascendingStreak = 0;
+  state.maxAscendingStreak = 0;
+  state.streakRecordEffectRemaining = 0;
   state.lastHealing = 0;
   state.recoveryEffectRemaining = 0;
   state.completedSections = 0;
@@ -293,6 +297,10 @@ function landOnNextRock(state) {
     state.slots[nextSlot + 1] >= nextHeight;
   state.health = Math.max(0, state.health - damage);
   state.ascendingStreak = ascent.streak;
+  if (ascent.streak > state.maxAscendingStreak) {
+    state.maxAscendingStreak = ascent.streak;
+    state.streakRecordEffectRemaining = 0.9;
+  }
   state.lastHealing = ascent.streak > 0 && !safeFlowContinues ? ascent.recovery : 0;
   state.health += state.lastHealing;
   state.recoveryEffectRemaining = state.lastHealing > 0 ? 0.7 : 0;
@@ -323,6 +331,7 @@ export function advanceWalk(state, elapsedSeconds) {
   const safeElapsed = Number.isFinite(elapsedSeconds) ? Math.max(0, elapsedSeconds) : 0;
   state.damageEffectRemaining = Math.max(0, state.damageEffectRemaining - safeElapsed);
   state.recoveryEffectRemaining = Math.max(0, state.recoveryEffectRemaining - safeElapsed);
+  state.streakRecordEffectRemaining = Math.max(0, state.streakRecordEffectRemaining - safeElapsed);
   if (state.phase === "path-review") {
     state.pathReviewRemaining = Math.max(0, state.pathReviewRemaining - safeElapsed);
     if (state.pathReviewRemaining === 0) {
@@ -352,6 +361,7 @@ export function advanceCameraTransition(state, elapsedSeconds, random = Math.ran
   const safeElapsed = Number.isFinite(elapsedSeconds) ? Math.max(0, elapsedSeconds) : 0;
   state.damageEffectRemaining = Math.max(0, state.damageEffectRemaining - safeElapsed);
   state.recoveryEffectRemaining = Math.max(0, state.recoveryEffectRemaining - safeElapsed);
+  state.streakRecordEffectRemaining = Math.max(0, state.streakRecordEffectRemaining - safeElapsed);
   state.cameraTransitionRemaining = Math.max(0, state.cameraTransitionRemaining - safeElapsed);
   state.cameraTransitionProgress = Math.min(
     1,

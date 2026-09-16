@@ -65,6 +65,7 @@ export function createGameController({
     canvas,
     healthValue,
     heightValue,
+    maxStreakValue,
     gameStatus,
     exitButton,
     restartButton,
@@ -154,6 +155,18 @@ export function createGameController({
     healthValue.textContent = `${Math.max(0, state.health)}개`;
     healthValue.classList?.toggle("acorn-lost", state.lastDamage > 0);
     heightValue.textContent = String(state.currentHeight);
+    const previousMax = Number(maxStreakValue.textContent) || 0;
+    maxStreakValue.textContent = String(state.maxAscendingStreak);
+    if (state.maxAscendingStreak > previousMax) {
+      maxStreakValue.animate?.(
+        [
+          { transform: "scale(1)", color: "#c27654" },
+          { transform: "scale(1.8)", color: "#f0a15e" },
+          { transform: "scale(1)", color: "#c27654" },
+        ],
+        { duration: 620, easing: "ease-out" },
+      );
+    }
   }
 
   function animationIsActive() {

@@ -80,6 +80,7 @@ test("같거나 높은 연속 흐름은 중간에 누적하지 않고 가장 큰
   landOnce(state);
   assert.equal(state.health, 111);
   assert.equal(state.lastHealing, 31);
+  assert.equal(state.maxAscendingStreak, 5);
   landOnce(state);
   assert.equal(state.health, 71);
   assert.equal(state.ascendingStreak, 0);
@@ -90,6 +91,7 @@ test("같거나 높은 연속 흐름은 중간에 누적하지 않고 가장 큰
   landOnce(state);
   assert.equal(state.health, 78);
   assert.equal(state.lastHealing, 7);
+  assert.equal(state.maxAscendingStreak, 5);
 
   const cappedState = completeBoard([10, 20, 30, 40, 40, 40, 40, 40, 40, 40]);
   cappedState.health = 99;
