@@ -363,7 +363,11 @@ canvas {
 }
 
 .tutorial-card {
+  display: flex;
+  max-height: calc(100dvh - 24px);
   width: min(620px, 94%);
+  flex-direction: column;
+  overflow-y: auto;
   padding: clamp(22px, 5vw, 46px);
   border: 2px solid #b5d9c7;
   border-radius: 20px;
@@ -380,10 +384,17 @@ canvas {
 }
 
 .tutorial-text {
+  order: 2;
   min-height: 4.8em;
-  margin: 0 auto 24px;
+  margin: 18px auto 0;
   font-size: clamp(1rem, 2.6vw, 1.3rem);
   line-height: 1.7;
+}
+
+#tutorial-next-button {
+  order: 1;
+  flex: 0 0 auto;
+  align-self: center;
 }
 
 .rotate-icon {
@@ -464,6 +475,26 @@ canvas {
 
   .title-card {
     padding: 17px 28px 20px;
+  }
+
+  .tutorial-card {
+    padding: 14px 22px 18px;
+  }
+
+  .tutorial-card h2 {
+    margin-bottom: 10px;
+    font-size: 1.25rem;
+  }
+
+  #tutorial-next-button {
+    min-height: 46px;
+    padding-block: 8px;
+  }
+
+  .tutorial-text {
+    min-height: 0;
+    margin-top: 12px;
+    line-height: 1.45;
   }
 
   .intro {
