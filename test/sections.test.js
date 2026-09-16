@@ -36,7 +36,7 @@ function walkWholeBoard(state) {
   }
 }
 
-test("두 구간을 반복하면 마지막 절대 높이를 새 baseHeight로 승계하고 체력·누적 칸을 보존한다", () => {
+test("두 구간을 반복하면 마지막 절대 높이와 발밑 나무토막을 승계하고 도토리·누적 칸을 보존한다", () => {
   const state = createInitialState();
   startGame(state, fixedRandom);
   state.health = 95;
@@ -61,6 +61,7 @@ test("두 구간을 반복하면 마지막 절대 높이를 새 baseHeight로 �
   assert.equal(state.currentHeight, 10);
   assert.equal(state.health, 95);
   assert.equal(state.walkedSlots, 10);
+  assert.equal(state.startingLogHeight, 10);
 
   placeBoard(state, Array(SLOT_COUNT).fill(20));
   advanceWalk(state, PATH_REVIEW_SECONDS);
@@ -101,6 +102,7 @@ test("카메라 전환 중 입력과 재호출은 보드나 바위를 중복 생
   assert.equal(state.phase, "placing");
   assert.equal(state.placementCount, 0);
   assert.equal(state.slots.filter((height) => height !== null).length, 0);
+  assert.equal(state.startingLogHeight, 12);
   assert.equal(advanceCameraTransition(state, CAMERA_TRANSITION_SECONDS, fixedRandom), false);
   assert.equal(state.currentRock, onlyNewRock);
 });

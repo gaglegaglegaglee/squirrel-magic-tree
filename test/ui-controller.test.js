@@ -176,7 +176,7 @@ test("실제 시작 버튼 click 연결이 화면 hidden 상태와 HUD를 바꾸
 
   assert.equal(elements.startScreen.hidden, true);
   assert.equal(elements.gameScreen.hidden, false);
-  assert.equal(elements.healthValue.textContent, "100");
+  assert.equal(elements.healthValue.textContent, "100개");
   assert.equal(elements.heightValue.textContent, "0");
   assert.deepEqual(renderedStates, [{ screen: "game", placementCount: 0 }]);
   controller.destroy();
@@ -235,7 +235,7 @@ test("열 번째 pointer 배치 뒤에는 길 완성을 알리고 추가 배치�
   controller.destroy();
 });
 
-test("walking 동안 입력을 잠그고 체력 소진 착지에서 HUD와 안내를 갱신한 뒤 정지한다", () => {
+test("walking 동안 입력을 잠그고 도토리 소진 착지에서 HUD와 안내를 갱신한 뒤 정지한다", () => {
   const harness = createUiHarness();
   const { controller, elements, scheduledFrames } = harness;
   const heights = [50, 1, 50, 1, 50, 1, 50, 1, 50, 1];
@@ -262,9 +262,9 @@ test("walking 동안 입력을 잠그고 체력 소진 착지에서 HUD와 안�
   assert.equal(controller.state.characterSlot, 5);
   assert.equal(controller.state.walkedSlots, 6);
   assert.equal(controller.state.health, 0);
-  assert.equal(elements.healthValue.textContent, "0");
+  assert.equal(elements.healthValue.textContent, "0개");
   assert.equal(elements.heightValue.textContent, "1");
-  assert.match(elements.gameStatus.textContent, /체력 소진/);
+  assert.match(elements.gameStatus.textContent, /도토리 소진/);
   assert.equal(elements.resultOverlay.hidden, false);
   assert.equal(elements.resultHeight.textContent, "1");
   assert.equal(elements.resultWalked.textContent, "6");
@@ -516,7 +516,7 @@ test("피해 없이 생존하면 UI가 10번째 나무토막 완주와 최종 �
   assert.equal(controller.state.characterSlot, 9);
   assert.equal(controller.state.walkedSlots, 10);
   assert.equal(controller.state.health, 100);
-  assert.equal(elements.healthValue.textContent, "100");
+  assert.equal(elements.healthValue.textContent, "100개");
   assert.equal(elements.heightValue.textContent, "25");
   assert.match(elements.gameStatus.textContent, /구간 완주/);
 
@@ -682,7 +682,7 @@ test("브라우저 진입 모듈은 시작 click부터 실제 Canvas 10칸 렌�
   controller.state.lastDamage = 49;
   controller.state.damageEffectRemaining = 0.45;
   controller.render();
-  assert.equal(drawnTexts.includes("-49 체력"), true);
+  assert.equal(drawnTexts.includes("도토리 -49"), true);
   controller.state.phase = "camera-transition";
   controller.state.baseHeight = 50;
   controller.state.cameraTransitionProgress = 0.5;

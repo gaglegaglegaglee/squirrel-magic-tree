@@ -1,5 +1,6 @@
 export const SLOT_COUNT = 10;
 export const STARTING_HEALTH = 100;
+export const STARTING_ACORNS = STARTING_HEALTH;
 export const STARTING_HEIGHT = 0;
 export const ROCK_MIN_HEIGHT = 1;
 export const ROCK_MAX_HEIGHT = 50;
@@ -105,6 +106,7 @@ export function createInitialState() {
     rockSpeedMultiplier: 1,
     cameraTransitionRemaining: 0,
     cameraTransitionProgress: 0,
+    startingLogHeight: 20,
   };
 }
 
@@ -136,6 +138,7 @@ export function startGame(state, random = Math.random) {
   state.rockSpeedMultiplier = 1;
   state.cameraTransitionRemaining = 0;
   state.cameraTransitionProgress = 0;
+  state.startingLogHeight = 20;
   return true;
 }
 
@@ -246,7 +249,7 @@ function landOnNextRock(state) {
   state.lastHealing = Math.min(ascent.recovery, STARTING_HEALTH - state.health);
   state.health += state.lastHealing;
   state.lastDamage = damage;
-  state.damageEffectRemaining = damage > 0 ? 0.45 : 0;
+  state.damageEffectRemaining = damage > 0 ? 0.7 : 0;
   state.characterSlot = nextSlot;
   state.currentHeight = state.baseHeight + nextHeight;
   state.walkedSlots += 1;
@@ -309,6 +312,7 @@ export function advanceCameraTransition(state, elapsedSeconds, random = Math.ran
     return true;
   }
 
+  state.startingLogHeight = state.slots[SLOT_COUNT - 1];
   state.phase = "placing";
   state.slots = Array(SLOT_COUNT).fill(null);
   state.currentRock = createMovingRock(random);

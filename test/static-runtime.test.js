@@ -22,8 +22,8 @@ test("반응형 HUD와 Canvas 및 움직임 줄이기 규칙이 공개 CSS에 �
   assert.match(css, /font-variant-numeric:\s*tabular-nums/);
   assert.match(css, /max-width:\s*100%/);
   assert.match(css, /@media\s*\(prefers-reduced-motion:\s*reduce\)/);
-  assert.match(css, /\.hud strong\.health-damaged/);
-  assert.match(css, /@keyframes\s+health-damage-flash/);
+  assert.match(css, /\.hud strong\.acorn-lost/);
+  assert.match(css, /@keyframes\s+acorn-loss-bounce/);
 });
 
 test("주요 키보드 동작은 네이티브 button과 접근 가능한 dialog로 제공된다", async () => {

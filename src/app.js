@@ -161,9 +161,9 @@ function drawSquirrel(state) {
   context.ellipse(x, ground + 3, 28 - bounce * 0.16, 7, 0, 0, Math.PI * 2);
   context.fill();
 
-  const fur = state.phase === "game-over" ? "#d65f68" : "#c98768";
-  const darkFur = state.phase === "game-over" ? "#8e3440" : "#84584d";
-  context.shadowColor = state.phase === "game-over" ? "#ff8088" : "#fff2cf";
+  const fur = state.phase === "game-over" ? "#a98a7b" : "#c98768";
+  const darkFur = state.phase === "game-over" ? "#66544e" : "#84584d";
+  context.shadowColor = "#fff2cf";
   context.shadowBlur = 16;
 
   context.fillStyle = "#dca084";
@@ -241,6 +241,15 @@ function drawSlots(state) {
   }
 }
 
+function drawStartingLog(state) {
+  if (state.characterSlot >= 0 || state.phase === "camera-transition") {
+    return;
+  }
+
+  const height = state.startingLogHeight ?? 20;
+  drawRock(132, 777 + rockVisualHeight(height), height, true);
+}
+
 function rockVisualHeight(height) {
   return 80 + (height / 50) * 145;
 }
@@ -302,30 +311,42 @@ function drawCameraTransition(state) {
   context.fillText(`높이 ${state.baseHeight}m · 다음 층으로 상승 중`, LOGICAL_WIDTH / 2, 170);
 }
 
-function drawDamageEffect(state) {
-  if (state.damageEffectRemaining <= 0 && state.phase !== "game-over") {
+function drawAcornBurst(state) {
+  if (state.damageEffectRemaining <= 0 || state.lastDamage <= 0) {
     return;
   }
 
-  const strength = state.phase === "game-over"
-    ? 0.28
-    : Math.min(0.25, 0.1 + state.damageEffectRemaining * 0.32);
+  const origin = characterFootPosition(state);
+  const elapsed = Math.max(0.16, 0.7 - state.damageEffectRemaining);
+  const particleCount = Math.min(14, Math.max(5, Math.ceil(state.lastDamage / 4)));
   context.save();
-  context.fillStyle = `rgba(184, 18, 30, ${strength})`;
-  context.fillRect(0, 0, LOGICAL_WIDTH, LOGICAL_HEIGHT);
-  context.strokeStyle = "rgba(255, 65, 70, 0.9)";
-  context.lineWidth = 30;
-  context.strokeRect(15, 15, LOGICAL_WIDTH - 30, LOGICAL_HEIGHT - 30);
-  if (state.lastDamage > 0) {
-    context.fillStyle = "#fff4ef";
-    context.strokeStyle = "#7b101b";
-    context.lineWidth = 10;
-    context.font = "900 58px system-ui, sans-serif";
-    context.textAlign = "center";
-    context.textBaseline = "middle";
-    context.strokeText(`-${state.lastDamage} 체력`, LOGICAL_WIDTH / 2, 245);
-    context.fillText(`-${state.lastDamage} 체력`, LOGICAL_WIDTH / 2, 245);
+  for (let index = 0; index < particleCount; index += 1) {
+    const direction = index % 2 === 0 ? -1 : 1;
+    const speed = 115 + (index % 5) * 24;
+    const x = origin.x + direction * speed * elapsed + Math.sin(index * 2.1) * 18;
+    const y = origin.y - 38 - (190 + (index % 4) * 34) * elapsed + 310 * elapsed * elapsed;
+    context.save();
+    context.translate(x, y);
+    context.rotate(direction * elapsed * (3.2 + index * 0.24));
+    context.fillStyle = "#a96c3f";
+    context.strokeStyle = "#6f4932";
+    context.lineWidth = 3;
+    context.beginPath();
+    context.ellipse(0, 4, 9, 12, 0, 0, Math.PI * 2);
+    context.fill();
+    context.stroke();
+    context.fillStyle = "#6f4932";
+    context.fillRect(-7, -9, 14, 5);
+    context.restore();
   }
+  context.fillStyle = "#fff8dc";
+  context.strokeStyle = "#6f4932";
+  context.lineWidth = 8;
+  context.font = "900 48px system-ui, sans-serif";
+  context.textAlign = "center";
+  context.textBaseline = "middle";
+  context.strokeText(`도토리 -${state.lastDamage}`, origin.x, origin.y - 135);
+  context.fillText(`도토리 -${state.lastDamage}`, origin.x, origin.y - 135);
   context.restore();
 }
 
@@ -390,14 +411,14 @@ function drawCurrentRock(state) {
   context.strokeStyle = "#f7cf71";
   context.lineWidth = 3;
   context.beginPath();
-  context.roundRect(centerX - 72, 82, 144, 52, 20);
+  context.roundRect(centerX - 155, 76, 310, 62, 22);
   context.fill();
   context.stroke();
   context.fillStyle = "#ffe9a0";
   context.font = "800 25px system-ui, sans-serif";
   context.textAlign = "center";
   context.textBaseline = "middle";
-  context.fillText(`현재 나무토막 ${state.currentRock.height}`, centerX, 108);
+  context.fillText(`현재 나무토막 · ${state.currentRock.height}`, centerX, 107);
 }
 
 function render(state) {
@@ -409,12 +430,13 @@ function render(state) {
     const cameraOffset = cameraOffsetToAlignCharacter(state);
     context.translate(cameraOffset.x, cameraOffset.y);
   }
+  drawStartingLog(state);
   drawSlots(state);
   drawDangerMarkers(state);
   drawSquirrel(state);
+  drawAcornBurst(state);
   drawCurrentRock(state);
   context.restore();
-  drawDamageEffect(state);
   drawCameraTransition(state);
 }
 

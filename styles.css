@@ -268,13 +268,13 @@ h1 {
   overflow-wrap: anywhere;
 }
 
-.hud strong.health-damaged {
-  color: #ff5a5f;
-  text-shadow: 0 0 16px #ff263dcc;
-  animation: health-damage-flash 420ms ease-out;
+.hud strong.acorn-lost {
+  color: #9a653d;
+  text-shadow: 0 0 16px #f5c982cc;
+  animation: acorn-loss-bounce 520ms ease-out;
 }
 
-@keyframes health-damage-flash {
+@keyframes acorn-loss-bounce {
   0%, 45% {
     transform: scale(1.22);
   }

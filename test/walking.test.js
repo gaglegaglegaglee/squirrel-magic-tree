@@ -61,7 +61,7 @@ test("연속 오름차순 회복은 1, 3, 7로 늘고 같은 높이나 내리막
   assert.deepEqual(calculateAscendingRecovery(30, 10, 3), { streak: 0, recovery: 0 });
 });
 
-test("오름차순 착지는 실제 체력을 1, 3, 7 회복하고 최대 100을 넘지 않는다", () => {
+test("오름차순 착지는 도토리를 1, 3, 7개 되찾고 최대 100개를 넘지 않는다", () => {
   const state = completeBoard([10, 20, 30, 40, 40, 50, 10, 20, 30, 40]);
   state.health = 80;
   startWalking(state);
@@ -134,7 +134,7 @@ test("짧은 길 확인 시간이 끝난 뒤 슬롯 0부터 9까지 순서대로
   assert.deepEqual(state.slots, originalBoard);
 });
 
-test("50→1 피해는 착지 순간 한 번만 적용되고 HUD용 체력 상태는 51이 된다", () => {
+test("50→1 낙차는 착지 순간 도토리 49개를 한 번만 떨어뜨린다", () => {
   const state = completeBoard([50, 1, 1, 1, 1, 1, 1, 1, 1, 1]);
   startWalking(state);
   landOnce(state);
@@ -144,16 +144,16 @@ test("50→1 피해는 착지 순간 한 번만 적용되고 HUD용 체력 상�
   assert.equal(state.characterSlot, 1);
   assert.equal(state.lastDamage, 49);
   assert.equal(state.health, 51);
-  assert.equal(state.damageEffectRemaining, 0.45);
+  assert.equal(state.damageEffectRemaining, 0.7);
 
   advanceWalk(state, 0);
   advanceWalk(state, WALK_STEP_SECONDS / 2);
   assert.equal(state.characterSlot, 1);
   assert.equal(state.health, 51);
-  assert.equal(state.damageEffectRemaining < 0.45, true);
+  assert.equal(state.damageEffectRemaining < 0.7, true);
 });
 
-test("누적 피해로 체력이 소진되면 0으로 고정하고 해당 바위에서 즉시 종료한다", () => {
+test("누적 낙차로 도토리가 소진되면 0개로 고정하고 해당 나무토막에서 즉시 종료한다", () => {
   const heights = [50, 1, 50, 1, 50, 1, 50, 1, 50, 1];
   const state = completeBoard(heights);
   startWalking(state);

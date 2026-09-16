@@ -16,7 +16,7 @@ import { createTutorialStore } from "./tutorial-store.js";
 export const TUTORIAL_STEPS = Object.freeze([
   "화면 위에 나타난 나무토막의 높이를 확인하세요.",
   "원하는 빈칸을 터치하거나 클릭하면 나무토막이 그 자리에 바로 꽂힙니다.",
-  "내리막은 높이 차이만큼 피해를 받고, 연속 오르막은 체력을 1, 3, 7…씩 회복합니다.",
+  "내리막에서는 높이 차이만큼 도토리를 떨어뜨리고, 연속 오르막은 도토리를 1, 3, 7…개씩 되찾습니다.",
 ]);
 
 export function pointIsInsideElement(element, clientX, clientY) {
@@ -150,8 +150,8 @@ export function createGameController({
   }
 
   function updateHud() {
-    healthValue.textContent = String(Math.max(0, state.health));
-    healthValue.classList?.toggle("health-damaged", state.lastDamage > 0);
+    healthValue.textContent = `${Math.max(0, state.health)}개`;
+    healthValue.classList?.toggle("acorn-lost", state.lastDamage > 0);
     heightValue.textContent = String(state.currentHeight);
   }
 
@@ -295,13 +295,13 @@ export function createGameController({
 
     updateHud();
     if (state.phase === "game-over") {
-      gameStatus.textContent = `체력 소진! ${state.characterSlot + 1}번째 나무토막에서 멈췄습니다.`;
+      gameStatus.textContent = `도토리 소진! ${state.characterSlot + 1}번째 나무토막에서 멈췄습니다.`;
     } else if (state.phase === "camera-transition") {
       gameStatus.textContent = `구간 완주! 높이 ${state.baseHeight}m에서 다음 층으로 올라갑니다.`;
     } else if (state.lastDamage > 0) {
-      gameStatus.textContent = `낙차 피해 ${state.lastDamage} · 남은 체력 ${state.health}`;
+      gameStatus.textContent = `도토리 ${state.lastDamage}개를 떨어뜨렸습니다 · 남은 도토리 ${state.health}개`;
     } else if (state.lastHealing > 0) {
-      gameStatus.textContent = `연속 오르막 ${state.ascendingStreak} · 체력 +${state.lastHealing}`;
+      gameStatus.textContent = `연속 오르막 ${state.ascendingStreak} · 도토리 +${state.lastHealing}개`;
     } else {
       gameStatus.textContent = `${state.characterSlot + 1}/10 나무토막에 안전하게 착지했습니다.`;
     }
