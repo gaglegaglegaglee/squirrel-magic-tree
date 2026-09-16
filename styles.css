@@ -287,9 +287,6 @@ h1 {
   display: grid;
   gap: 2px;
   color: #5c796d;
-  font-family: Georgia, "Noto Serif KR", serif;
-  font-size: clamp(1rem, 2.8vw, 1.65rem);
-  font-weight: 900;
   white-space: nowrap;
 }
 

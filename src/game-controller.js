@@ -3,7 +3,7 @@ import {
   advancePlacementAnimations,
   advanceWalk,
   BOARD_WIDTH,
-  BOARD_X,
+  boardXForDirection,
   createInitialState,
   placeCurrentRockAtSlot,
   SLOT_COUNT,
@@ -35,14 +35,14 @@ export function pointIsInsideElement(element, clientX, clientY) {
   );
 }
 
-export function slotIndexFromCanvasX(canvas, clientX) {
+export function slotIndexFromCanvasX(canvas, clientX, direction = 1) {
   const rect = canvas.getBoundingClientRect();
   if (!Number.isFinite(clientX) || !Number.isFinite(rect.width) || rect.width <= 0) {
     return null;
   }
 
   const logicalX = ((clientX - rect.left) / rect.width) * 1600;
-  const boardX = BOARD_X;
+  const boardX = boardXForDirection(direction);
   const boardWidth = BOARD_WIDTH;
   if (logicalX < boardX || logicalX > boardX + boardWidth) {
     return null;
@@ -465,7 +465,7 @@ export function createGameController({
       return false;
     }
 
-    const slotIndex = slotIndexFromCanvasX(canvas, event.clientX);
+    const slotIndex = slotIndexFromCanvasX(canvas, event.clientX, state.sectionDirection);
     if (!placeCurrentRockAtSlot(state, slotIndex, random)) {
       return false;
     }

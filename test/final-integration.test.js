@@ -82,7 +82,8 @@ function integrationHarness() {
 function placeHeights(controller, elements, heights) {
   for (let slotIndex = 0; slotIndex < heights.length; slotIndex += 1) {
     controller.state.currentRock.height = heights[slotIndex];
-    elements.canvas.emit("pointerdown", { clientX: 118.75 + (slotIndex + 0.5) * 42.5, clientY: 300 });
+    const boardLeft = controller.state.sectionDirection === 1 ? 112.5 : 6.25;
+    elements.canvas.emit("pointerdown", { clientX: boardLeft + (slotIndex + 0.5) * 44.0625, clientY: 300 });
   }
 }
 

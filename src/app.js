@@ -1,8 +1,8 @@
 import { createGameController } from "./game-controller.js";
 import {
   BOARD_WIDTH,
-  BOARD_X,
   SLOT_COUNT,
+  boardXForDirection,
   bounceHeightForProgress,
   cameraOffsetForProgress,
 } from "./game-state.js";
@@ -11,7 +11,7 @@ import { createTutorialStore } from "./tutorial-store.js";
 
 const LOGICAL_WIDTH = 1600;
 const LOGICAL_HEIGHT = 900;
-const BOARD = Object.freeze({ x: BOARD_X, y: 650, width: BOARD_WIDTH, height: 128 });
+const BOARD = Object.freeze({ y: 650, width: BOARD_WIDTH, height: 128 });
 const SLOT_GAP = 6;
 const SLOT_WIDTH = (BOARD.width - SLOT_GAP * (SLOT_COUNT - 1)) / SLOT_COUNT;
 
@@ -159,7 +159,7 @@ function characterFootPosition(state) {
   const from = fromSlot < 0
     ? start
     : {
-        x: slotX(fromSlot) + SLOT_WIDTH / 2,
+        x: slotX(fromSlot, state) + SLOT_WIDTH / 2,
         y: BOARD.y + BOARD.height - rockVisualHeight(state.slots[fromSlot]),
       };
   if (state.phase !== "walking" || toSlot === fromSlot) {
@@ -167,7 +167,7 @@ function characterFootPosition(state) {
   }
 
   const to = {
-    x: slotX(toSlot) + SLOT_WIDTH / 2,
+    x: slotX(toSlot, state) + SLOT_WIDTH / 2,
     y: BOARD.y + BOARD.height - rockVisualHeight(state.slots[toSlot]),
   };
   const progress = state.walkProgress * state.walkProgress * (3 - 2 * state.walkProgress);
@@ -255,13 +255,13 @@ function drawSquirrel(state) {
   context.restore();
 }
 
-function slotX(index) {
-  return BOARD.x + index * (SLOT_WIDTH + SLOT_GAP);
+function slotX(index, state) {
+  return boardXForDirection(state.sectionDirection) + index * (SLOT_WIDTH + SLOT_GAP);
 }
 
 function drawSlots(state) {
   for (let index = 0; index < SLOT_COUNT; index += 1) {
-    const x = slotX(index);
+    const x = slotX(index, state);
     const isHighlighted = state.highlightedSlot === index;
     const height = state.slots[index];
 
@@ -293,7 +293,7 @@ function drawPlacementAnimation(state) {
 
   const rawProgress = 1 - animation.remaining / 0.38;
   const progress = rawProgress * rawProgress * (3 - 2 * rawProgress);
-  const targetX = slotX(animation.slotIndex) + SLOT_WIDTH / 2;
+  const targetX = slotX(animation.slotIndex, state) + SLOT_WIDTH / 2;
   const targetBottom = BOARD.y + BOARD.height;
   const x = LOGICAL_WIDTH / 2 + (targetX - LOGICAL_WIDTH / 2) * progress;
   const bottom = 400 + (targetBottom - 400) * progress;
@@ -322,8 +322,10 @@ function rockVisualHeight(height) {
 
 function drawDangerMarkers(state) {
   for (const danger of state.dangerousDrops) {
-    const fromX = slotX(danger.fromIndex) + SLOT_WIDTH * 0.72;
-    const toX = slotX(danger.toIndex) + SLOT_WIDTH * 0.28;
+    const fromEdge = state.sectionDirection === 1 ? 0.72 : 0.28;
+    const toEdge = state.sectionDirection === 1 ? 0.28 : 0.72;
+    const fromX = slotX(danger.fromIndex, state) + SLOT_WIDTH * fromEdge;
+    const toX = slotX(danger.toIndex, state) + SLOT_WIDTH * toEdge;
     const fromY = BOARD.y + BOARD.height - rockVisualHeight(state.slots[danger.fromIndex]) - 25;
     const toY = BOARD.y + BOARD.height - rockVisualHeight(state.slots[danger.toIndex]) - 25;
 

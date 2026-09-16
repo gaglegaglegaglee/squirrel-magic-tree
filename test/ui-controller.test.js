@@ -162,8 +162,8 @@ function createUiHarness(random = () => 0.5, options = {}) {
 }
 
 function clickSlot(elements, slotIndex) {
-  const boardLeft = 10 + (190 / 1600) * 800;
-  const slotWidth = (1360 / 1600) * 800 / 20;
+  const boardLeft = 10 + (180 / 1600) * 800;
+  const slotWidth = (1410 / 1600) * 800 / 20;
   elements.canvas.emit("pointerdown", {
     clientX: boardLeft + (slotIndex + 0.5) * slotWidth,
     clientY: 200,
@@ -676,7 +676,7 @@ test("브라우저 진입 모듈은 시작 click부터 실제 Canvas 20칸 렌�
   for (const slotIndex of remainingSlots) {
     controller.state.currentRock.height = slotIndex === 0 ? 50 : slotIndex === 1 ? 1 : 10;
     canvas.emit("pointerdown", {
-      clientX: 190 + (slotIndex + 0.5) * 68,
+      clientX: 180 + (slotIndex + 0.5) * 70.5,
       clientY: 450,
     });
   }
