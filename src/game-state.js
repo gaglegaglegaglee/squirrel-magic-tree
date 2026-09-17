@@ -19,7 +19,6 @@ export const WALK_STEP_SECONDS = 0.55;
 export const CAMERA_TRANSITION_SECONDS = 0.9;
 export const ROCK_ARRIVAL_SECONDS = 0.52;
 export const ROCK_PLACEMENT_SECONDS = 0.38;
-export const CAMERA_HORIZONTAL_SHIFT = 320;
 export const CAMERA_VERTICAL_SHIFT = 190;
 
 export function speedMultiplierForSections(completedSections) {
@@ -65,7 +64,7 @@ export function calculateAscendingRecovery(previousHeight, nextHeight, currentSt
 
 export function cameraOffsetForProgress(
   progress,
-  targetX = -CAMERA_HORIZONTAL_SHIFT,
+  targetX = 0,
   targetY = CAMERA_VERTICAL_SHIFT,
 ) {
   const safeProgress = Number.isFinite(progress) ? Math.min(1, Math.max(0, progress)) : 0;

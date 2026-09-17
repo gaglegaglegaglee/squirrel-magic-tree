@@ -81,10 +81,9 @@ function drawBackground(state) {
 
   const backgroundLevel = state.completedSections +
     (state.phase === "camera-transition" ? state.cameraTransitionProgress - 1 : 0);
-  const parallaxX = -backgroundLevel * 34;
   const parallaxY = backgroundLevel * 72;
   context.save();
-  context.translate(parallaxX, parallaxY);
+  context.translate(0, parallaxY);
 
   context.fillStyle = "#fff8cf";
   context.beginPath();
@@ -183,15 +182,8 @@ function characterFootPosition(state) {
   };
 }
 
-function cameraOffsetToAlignCharacter(state) {
-  const nextDirection = -state.sectionDirection;
-  const start = { x: startXForDirection(nextDirection), y: 777 };
-  const character = characterFootPosition(state);
-  return cameraOffsetForProgress(
-    state.cameraTransitionProgress,
-    start.x - character.x,
-    start.y - character.y,
-  );
+function verticalCameraOffset(state) {
+  return cameraOffsetForProgress(state.cameraTransitionProgress);
 }
 
 function drawSquirrel(state) {
@@ -554,7 +546,7 @@ function render(state) {
   drawBackground(state);
   context.save();
   if (state.phase === "camera-transition") {
-    const cameraOffset = cameraOffsetToAlignCharacter(state);
+    const cameraOffset = verticalCameraOffset(state);
     context.translate(cameraOffset.x, cameraOffset.y);
   }
   drawStartingLog(state);

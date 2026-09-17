@@ -134,9 +134,9 @@ test("속도 배수는 구간마다 0.05 상승해 2.00에서 멈추고 바위 �
 
 test("카메라는 전환 내내 한 방향인 오른쪽 위로 이동한다", () => {
   assert.deepEqual(cameraOffsetForProgress(0), { x: 0, y: 0 });
-  assert.deepEqual(cameraOffsetForProgress(0.5), { x: -160, y: 95 });
-  assert.deepEqual(cameraOffsetForProgress(1), { x: -320, y: 190 });
-  assert.deepEqual(cameraOffsetForProgress(2), { x: -320, y: 190 });
+  assert.deepEqual(cameraOffsetForProgress(0.5), { x: 0, y: 95 });
+  assert.deepEqual(cameraOffsetForProgress(1), { x: 0, y: 190 });
+  assert.deepEqual(cameraOffsetForProgress(2), { x: 0, y: 190 });
 });
 
 test("카메라 전환 끝은 현재 점과 새 왼쪽 시작점의 차이를 정확히 메운다", () => {
